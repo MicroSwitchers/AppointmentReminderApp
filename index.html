@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Reminder</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        :root {
+            --primary-color: #61dafb;
+            --background-color: #1e1e1e;
+            --card-background: #2d2d2d;
+            --text-color: #ffffff;
+            --light-text-color: #b0b0b0;
+            --hours-color: #2196F3;
+            --minutes-color: #FFC107;
+            --seconds-color: #4CAF50;
+            --warning-color: #FF9800;
+            --alarm-color: #F44336;
+            --input-background: #3d3d3d;
+            --input-border: #4d4d4d;
+            --border-radius: 8px;
+            --transition-duration: 0.3s;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            padding: 30px;
+            transition: box-shadow var(--transition-duration) ease;
+        }
+
+        .container:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2.2em;
+        }
+
+        h2 {
+            font-size: 1.6em;
+        }
+
+        #currentTime {
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px; 
+            margin-bottom: 30px;
+        }
+
+        input, select, button {
+            padding: 14px;
+            border: 1px solid var(--input-border);
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: var(--input-background);
+            color: var(--text-color);
+            transition: background-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
+        }
+
+        input:focus, select:focus, button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.5);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color var(--transition-duration) ease;
+        }
+
+        button:hover {
+            background-color: #4fa8d1;
+        }
+
+        #appointmentList {
+            margin-top: 30px;
+        }
+
+        .appointment {
+            background-color: var(--card-background);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: box-shadow var(--transition-duration) ease;
+        }
+
+        .appointment:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .appointment-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .appointment button {
+            background-color: var(--alarm-color);
+            padding: 10px 20px;
+            font-size: 0.85em;
+            border-radius: var(--border-radius);
+            transition: background-color var(--transition-duration) ease;
+        }
+
+        .appointment button:hover {
+            background-color: #c0392b;
+        }
+
+        .countdown-container {
+            display: flex;
+            height: 40px;
+            background-color: var(--input-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .countdown-segment {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--background-color);
+            font-size: 1em;
+            font-weight: 700;
+            transition: width 1s linear;
+            min-width: 45px;
+        }
+
+        .hours { background-color: var(--hours-color); }
+        .minutes { background-color: var(--minutes-color); }
+        .seconds { background-color: var(--seconds-color); }
+
+        .countdown-text {
+            text-align: center;
+            font-size: 1.1em;
+            margin-top: 5px;
+            color: var(--light-text-color);
+        }
+
+        /* New reminder styles */
+        .reminder-options {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px; 
+        }
+
+        .reminder-option label {
+            display: flex;
+            align-items: center; 
+            cursor: pointer;
+            color: var(--light-text-color);
+        }
+
+        .reminder-option input[type="radio"] {
+            display: none; 
+        }
+
+        .reminder-option input[type="radio"] + span {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--light-text-color); 
+            display: inline-block;
+            position: relative;
+            margin-right: 5px; 
+        }
+
+        .reminder-option input[type="radio"]:checked + span::before { 
+            content: '';
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary-color);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+
+        .reminder-indicator {
+            height: 12px;
+            background-color: var(--warning-color);
+            margin-top: 5px;
+            width: 0;
+            transition: width 1s linear, background-color 1s linear;
+            border-radius: var(--border-radius);
+        }
+
+        label[for="appointmentTime"] {
+            color: var(--light-text-color);
+            display: block;
+            margin-bottom: 5px; 
+        }
+
+        label[for="reminder2h"] { 
+            color: var(--light-text-color);
+            display: block;
+            margin-bottom: 5px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Appointment Reminders</h1>
+        <div id="currentTime"></div>
+        <div class="input-group">
+            <select id="tagSelect">
+                <option value="Home Appointment">Home Appointment</option>
+                <option value="Online Appointment">Online Appointment</option>
+                <option value="Meeting">Meeting</option>
+                <option value="Travel">Travel</option>
+                <option value="Report">Report</option>
+                <option value="Service Plan">Service Plan</option>
+                <option value="Stats">Stats</option>
+                <option value="Office">Office</option>
+                <option value="Other">Other</option>
+            </select>
+            <input type="text" id="descInput" maxlength="2" placeholder="ID (2 letters)">
+            <label for="appointmentTime">Alarm Time:</label> 
+            <input type="time" id="appointmentTime">
+
+            <label for="reminder2h">Reminder Time:</label>
+            <div class="reminder-options">
+                <label for="reminder2h" class="reminder-option">
+                    <input type="radio" name="reminder" id="reminder2h" value="120">
+                    <span></span> 2h
+                </label>
+                <label for="reminder1h" class="reminder-option">
+                    <input type="radio" name="reminder" id="reminder1h" value="60" checked>
+                    <span></span> 1h
+                </label>
+                <label for="reminder45m" class="reminder-option">
+                    <input type="radio" name="reminder" id="reminder45m" value="45">
+                    <span></span> 45m
+                </label>
+                <label for="reminder20m" class="reminder-option">
+                    <input type="radio" name="reminder" id="reminder20m" value="20">
+                    <span></span> 20m
+                </label>
+                <label for="reminder10m" class="reminder-option">
+                    <input type="radio" name="reminder" id="reminder10m" value="10">
+                    <span></span> 10m
+                </label>
+                <label for="reminder5m" class="reminder-option">
+                    <input type="radio" name="reminder" id="reminder5m" value="5">
+                    <span></span> 5m
+                </label>
+            </div>
+
+            <button onclick="addAppointment()">Add Appointment</button>
+        </div>
+
+        <div id="appointmentList"></div>
+    </div>
+
+    <audio id="warningBeep">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="alarmSound">
+        <source src="https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let appointments = [];
+        let countdownIntervals = {};
+        let reminderIntervals = {};
+
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = `Current Time: ${now.toLocaleTimeString()}`;
+        }
+
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime();
+
+        function addAppointment() {
+            const tag = document.getElementById('tagSelect').value;
+            const desc = document.getElementById('descInput').value.toUpperCase();
+            const time = document.getElementById('appointmentTime').value;
+
+            let reminderMinutes = 60; // Default to 1 hour
+            const reminderOptions = document.querySelectorAll('input[name="reminder"]');
+            for (const option of reminderOptions) {
+                if (option.checked) {
+                    reminderMinutes = parseInt(option.value);
+                    break;
+                }
+            }
+
+            if (time) {
+                const id = Date.now();
+                const now = new Date();
+                const appointmentTime = new Date(now.toDateString() + ' ' + time);
+                if (appointmentTime <= now) {
+                    appointmentTime.setDate(appointmentTime.getDate() + 1); 
+                }
+                const totalDuration = appointmentTime - now;
+                appointments.push({ id, tag, desc, time, createdAt: now, totalDuration, appointmentTime, reminderMinutes, reminderPassed: false });
+                appointments.sort((a, b) => a.appointmentTime - b.appointmentTime);
+                updateAppointmentList();
+                document.getElementById('descInput').value = '';
+                document.getElementById('appointmentTime').value = '';
+            } else {
+                alert('Please set a valid appointment time.');
+            }
+        }
+
+        function updateAppointmentList() {
+            const list = document.getElementById('appointmentList');
+            list.innerHTML = '<h2>Appointments</h2>';
+            appointments.forEach((app) => {
+                const appointmentElement = document.createElement('div');
+                appointmentElement.className = 'appointment';
+                appointmentElement.id = `appointment-${app.id}`;
+                appointmentElement.innerHTML = `
+                    <div class="appointment-info">
+                        <span>${app.tag} ${app.desc ? `(${app.desc})` : ''} at ${app.time} (Reminder: ${app.reminderMinutes} mins before)</span>
+                        <button onclick="removeAppointment(${app.id})">Remove</button>
+                    </div>
+                    <div class="countdown-container" id="countdown-${app.id}">
+                        <div class="countdown-segment hours" id="hours-${app.id}"></div>
+                        <div class="countdown-segment minutes" id="minutes-${app.id}"></div>
+                        <div class="countdown-segment seconds" id="seconds-${app.id}"></div>
+                    </div>
+                    <div class="reminder-indicator" id="reminder-indicator-${app.id}"></div>
+                    <div class="countdown-text" id="countdown-text-${app.id}"></div>
+                `;
+                list.appendChild(appointmentElement);
+                
+                if (!countdownIntervals[app.id]) {
+                    startCountdown(app);
+                }
+                if (!reminderIntervals[app.id]) {
+                    setReminder(app);
+                }
+            });
+        }
+
+        function removeAppointment(id) {
+            appointments = appointments.filter(app => app.id !== id);
+            clearInterval(countdownIntervals[id]);
+            delete countdownIntervals[id];
+            clearInterval(reminderIntervals[id]);
+            delete reminderIntervals[id];
+            updateAppointmentList();
+        }
+
+        function startCountdown(appointment) {
+            function updateCountdown() {
+                const now = new Date();
+                let timeLeft = appointment.appointmentTime - now;
+
+                const hoursElement = document.getElementById(`hours-${appointment.id}`);
+                const minutesElement = document.getElementById(`minutes-${appointment.id}`);
+                const secondsElement = document.getElementById(`seconds-${appointment.id}`);
+                const countdownText = document.getElementById(`countdown-text-${appointment.id}`);
+                const reminderIndicator = document.getElementById(`reminder-indicator-${appointment.id}`);
+
+                if (!hoursElement || !minutesElement || !secondsElement || !countdownText || !reminderIndicator) {
+                    clearInterval(countdownIntervals[appointment.id]);
+                    delete countdownIntervals[appointment.id];
+                    return;
+                }
+
+                const totalSeconds = Math.floor(timeLeft / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                const totalWidth = 100;
+                const hourWidth = (hours / 24) * totalWidth;
+                const minuteWidth = (minutes / 60) * (totalWidth - hourWidth);
+                const secondWidth = (seconds / 60) * (totalWidth - hourWidth - minuteWidth);
+
+                hoursElement.style.width = `${hourWidth}%`;
+                minutesElement.style.width = `${minuteWidth}%`;
+                secondsElement.style.width = `${secondWidth}%`;
+
+                hoursElement.textContent = hours > 0 ? `${hours}H` : '';
+                minutesElement.textContent = minutes > 0 ? `${minutes}M` : '';
+                secondsElement.textContent = `${seconds}S`;
+
+                countdownText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                const reminderSeconds = appointment.reminderMinutes * 60;
+                const reminderProgress = Math.max(0, Math.min(100, ((reminderSeconds - totalSeconds) / reminderSeconds) * 100));
+                reminderIndicator.style.width = `${reminderProgress}%`;
+
+                if (totalSeconds <= 60) {
+                    const greenValue = Math.floor((60 - totalSeconds) / 60 * 255);
+                    reminderIndicator.style.backgroundColor = `rgb(243, ${greenValue}, 18)`;
+                } else {
+                    reminderIndicator.style.backgroundColor = 'var(--warning-color)';
+                }
+
+                if (!appointment.reminderPassed && totalSeconds <= reminderSeconds) {
+                    appointment.reminderPassed = true;
+                    playWarningBeep();
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownIntervals[appointment.id]);
+                    delete countdownIntervals[appointment.id];
+                    playAlarmSound();
+                    countdownText.textContent = "00:00:00";
+                    hoursElement.style.width = '0%';
+                    minutesElement.style.width = '0%';
+                    secondsElement.style.width = '0%';
+                    hoursElement.textContent = '';
+                    minutesElement.textContent = '';
+                    secondsElement.textContent = '';
+                }
+            }
+
+            updateCountdown(); 
+            countdownIntervals[appointment.id] = setInterval(updateCountdown, 1000);
+        }
+
+        function setReminder(appointment) {
+            reminderIntervals[appointment.id] = setInterval(() => {
+                const now = new Date();
+                const timeUntilAppointment = appointment.appointmentTime - now;
+                const minutesUntilAppointment = Math.floor(timeUntilAppointment / (1000 * 60));
+                
+                if (minutesUntilAppointment === appointment.reminderMinutes) {
+                    playWarningBeep();
+                    clearInterval(reminderIntervals[appointment.id]);
+                    delete reminderIntervals[appointment.id];
+                }
+            }, 60000); // Check every minute
+        }
+
+        function playWarningBeep() {
+            const audio = document.getElementById('warningBeep');
+            audio.play();
+        }
+
+        function playAlarmSound() {
+            const audio = document.getElementById('alarmSound');
+            audio.play();
+        }
+    </script>
+</body>
+</html>
