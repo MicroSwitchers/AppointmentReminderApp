@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Reminder</title>
+    <title>Visual Appointment Reminders</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
@@ -174,12 +174,13 @@
 
         .countdown-text {
             text-align: center;
-            font-size: 1.1em;
-            margin-top: 5px;
-            color: var(--light-text-color);
+            font-size: 1.8em; 
+            font-weight: bold; 
+            margin-top: 10px;
+            color: var(--text-color);
+            letter-spacing: 2px; 
         }
 
-        /* New reminder styles */
         .reminder-options {
             display: flex;
             align-items: center;
@@ -221,12 +222,13 @@
         }
 
         .reminder-indicator {
-            height: 12px;
+            height: 40px; 
             background-color: var(--warning-color);
-            margin-top: 5px;
+            margin: 15px 0;
             width: 0;
             transition: width 1s linear, background-color 1s linear;
             border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
         }
 
         label[for="appointmentTime"] {
@@ -244,7 +246,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Visual Appointment Reminders</h1>
+        <h1>Visual Appointment Reminders</h1> 
         <div id="currentTime"></div>
         <div class="input-group">
             <select id="tagSelect">
@@ -307,6 +309,7 @@
         let appointments = [];
         let countdownIntervals = {};
         let reminderIntervals = {};
+        let isDataInput = false; 
 
         function updateCurrentTime() {
             const now = new Date();
@@ -321,7 +324,7 @@
             const desc = document.getElementById('descInput').value.toUpperCase();
             const time = document.getElementById('appointmentTime').value;
 
-            let reminderMinutes = 60; // Default to 1 hour
+            let reminderMinutes = 60;
             const reminderOptions = document.querySelectorAll('input[name="reminder"]');
             for (const option of reminderOptions) {
                 if (option.checked) {
@@ -343,6 +346,8 @@
                 updateAppointmentList();
                 document.getElementById('descInput').value = '';
                 document.getElementById('appointmentTime').value = '';
+
+                isDataInput = true; 
             } else {
                 alert('Please set a valid appointment time.');
             }
@@ -386,6 +391,8 @@
             clearInterval(reminderIntervals[id]);
             delete reminderIntervals[id];
             updateAppointmentList();
+
+            isDataInput = appointments.length > 0; 
         }
 
         function startCountdown(appointment) {
@@ -423,8 +430,13 @@
                 minutesElement.textContent = minutes > 0 ? `${minutes}M` : '';
                 secondsElement.textContent = `${seconds}S`;
 
-                countdownText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                // Format the countdown text
+                const formattedHours = hours.toString().padStart(2, '0');
+                const formattedMinutes = minutes.toString().padStart(2, '0');
+                const formattedSeconds = seconds.toString().padStart(2, '0');
+                countdownText.textContent = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 
+                // Update reminder indicator
                 const reminderSeconds = appointment.reminderMinutes * 60;
                 const reminderProgress = Math.max(0, Math.min(100, ((reminderSeconds - totalSeconds) / reminderSeconds) * 100));
                 reminderIndicator.style.width = `${reminderProgress}%`;
@@ -455,7 +467,7 @@
                 }
             }
 
-            updateCountdown(); 
+            updateCountdown();
             countdownIntervals[appointment.id] = setInterval(updateCountdown, 1000);
         }
 
@@ -470,7 +482,7 @@
                     clearInterval(reminderIntervals[appointment.id]);
                     delete reminderIntervals[appointment.id];
                 }
-            }, 60000); // Check every minute
+            }, 60000); 
         }
 
         function playWarningBeep() {
@@ -482,6 +494,20 @@
             const audio = document.getElementById('alarmSound');
             audio.play();
         }
+
+        window.addEventListener('beforeunload', (event) => {
+            if (isDataInput) {
+                event.preventDefault(); 
+                event.returnValue = ''; 
+            }
+        });
+
+        const inputFields = document.querySelectorAll('input, select');
+        inputFields.forEach(input => {
+            input.addEventListener('input', () => {
+                isDataInput = true;
+            });
+        });
     </script>
 </body>
 </html>
