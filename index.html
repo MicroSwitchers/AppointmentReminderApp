@@ -2,326 +2,220 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visual Appointment Reminders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Visual Appointment Timer">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#61dafb">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-TileColor" content="#61dafb">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="./vta-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="./vta-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="./vta-512.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="./vta-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="./vta-512.png">
+    <link rel="shortcut icon" href="./vta-192.png">
+    
+    <title>Visual Appointment Timer</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root {
             --primary-color: #61dafb;
-            --primary-gradient: linear-gradient(90deg, #61dafb 0%, #2196F3 100%);
-            --background-color: #181c22;
-            --card-background: rgba(45, 45, 45, 0.85);
-            --glass-background: rgba(40, 44, 52, 0.7);
+            --primary-gradient: linear-gradient(135deg, #61dafb 0%, #21CBF3 50%, #2196F3 100%);
+            --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --background-color: #0a0e1a;
+            --background-gradient: radial-gradient(ellipse at top, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+            --card-background: rgba(30, 35, 50, 0.95);
+            --glass-background: rgba(25, 30, 45, 0.85);
+            --glass-light: rgba(255, 255, 255, 0.05);
+            --glass-medium: rgba(255, 255, 255, 0.1);
             --text-color: #ffffff;
-            --light-text-color: #b0b0b0;
-            --hours-color: #2196F3;
-            --minutes-color: #FFC107;
-            --seconds-color: #4CAF50;
-            --warning-color: #FF9800;
-            --alarm-color: #F44336;
-            --input-background: rgba(61, 61, 61, 0.85);
-            --input-border: #4d4d4d;
-            --border-radius: 14px;
+            --light-text-color: #cbd5e0;
+            --muted-text-color: #a0aec0;
+            --help-text-color: #8892b0;
+            --hours-color: #667eea;
+            --minutes-color: #f093fb;
+            --seconds-color: #4facfe;
+            --warning-color: #ffa726;
+            --warning-gradient: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+            --alarm-color: #ef5350;
+            --alarm-gradient: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            --danger-gradient: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+            --success-color: #66bb6a;
+            --input-background: rgba(45, 55, 75, 0.9);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-border-focus: rgba(97, 218, 251, 0.5);
+            --border-radius: 16px;
+            --border-radius-lg: 20px;
+            --border-radius-xl: 24px;
             --transition-duration: 0.3s;
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            --blur: blur(8px);
+            --transition-fast: 0.15s;
+            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.25);
+            --shadow-2xl: 0 20px 60px rgba(0, 0, 0, 0.3);
+            --glow-primary: 0 0 30px rgba(97, 218, 251, 0.3);
+            --glow-secondary: 0 0 20px rgba(102, 126, 234, 0.2);
+            --blur: blur(20px);
+            --blur-heavy: blur(40px);
         }
 
         html, body {
             height: 100%;
-            margin: 0;
-            padding: 0;
+            font-family: 'Roboto', sans-serif;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
             background: var(--background-color);
             min-height: 100vh;
             color: var(--text-color);
-            margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            background: linear-gradient(135deg, #232526 0%, #1e1e1e 100%);
-        }
-
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background: var(--glass-background);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 32px 30px 30px 30px;
-            margin-top: 40px;
-            backdrop-filter: var(--blur);
-            border: 1.5px solid rgba(97, 218, 251, 0.08);
-            transition: box-shadow var(--transition-duration) ease, background 0.5s;
-        }
-
-        .container:hover {
-            box-shadow: 0 12px 32px 0 rgba(97, 218, 251, 0.18);
-            background: rgba(45, 45, 45, 0.95);
-        }
-
-        h1, h2 {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 8px rgba(97, 218, 251, 0.08);
-        }
-
-        h1 {
-            font-size: 2.3em;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        h2 {
-            font-size: 1.5em;
-            color: var(--light-text-color);
-            margin-top: 10px;
-        }
-
-        #currentTime {
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 30px;
-            color: var(--primary-color);
-            letter-spacing: 1px;
-            text-shadow: 0 2px 8px rgba(97, 218, 251, 0.08);
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            margin-bottom: 30px;
-            background: rgba(30, 34, 40, 0.7);
-            border-radius: var(--border-radius);
-            padding: 18px 18px 10px 18px;
-            box-shadow: 0 2px 8px rgba(97, 218, 251, 0.07);
-        }
-
-        input, select, button {
-            padding: 14px;
-            border: 1.5px solid var(--input-border);
-            border-radius: var(--border-radius);
-            font-size: 1em;
-            width: 100%;
-            box-sizing: border-box;
-            background-color: var(--input-background);
-            color: var(--text-color);
-            transition: background-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease, border-color 0.2s;
-            margin-bottom: 2px;
-        }
-
-        input:focus, select:focus, button:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.25);
-            border-color: var(--primary-color);
-            background-color: #232b33;
-        }
-
-        button {
-            background: var(--primary-gradient);
-            color: var(--background-color);
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            transition: background 0.2s, color 0.2s;
-            letter-spacing: 1px;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: linear-gradient(90deg, #2196F3 0%, #61dafb 100%);
-            color: #fff;
-        }
-
-        #appointmentList {
-            margin-top: 30px;
-        }
-
-        .appointment {
-            background: rgba(45, 45, 45, 0.92);
-            padding: 22px 18px 18px 18px;
-            margin-bottom: 22px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 2px 8px rgba(97, 218, 251, 0.08);
-            transition: box-shadow var(--transition-duration) ease, background 0.3s;
-            border: 1.5px solid rgba(97, 218, 251, 0.07);
-        }
-
-        .appointment:hover {
-            box-shadow: 0 4px 16px rgba(97, 218, 251, 0.18);
-            background: rgba(45, 45, 45, 0.99);
-        }
-
-        .appointment-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-size: 1em;
-            color: var(--light-text-color);
-        }
-
-        .appointment button {
-            background: linear-gradient(90deg, #F44336 0%, #FF9800 100%);
-            color: #fff;
-            padding: 10px 22px;
-            font-size: 0.95em;
-            border-radius: var(--border-radius);
-            transition: background 0.2s, color 0.2s;
-            font-weight: 700;
-            border: none;
-            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.08);
-        }
-
-        .appointment button:hover {
-            background: linear-gradient(90deg, #c0392b 0%, #FF9800 100%);
-            color: #fff;
-        }
-
-        .countdown-container {
-            display: flex;
-            height: 40px;
-            background: rgba(61, 61, 61, 0.7);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(97, 218, 251, 0.05);
-        }
-
-        .countdown-segment {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--background-color);
-            font-size: 1em;
-            font-weight: 700;
-            transition: width 1s linear;
-            min-width: 45px;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .hours { background: linear-gradient(90deg, #2196F3 60%, #61dafb 100%); }
-        .minutes { background: linear-gradient(90deg, #FFC107 60%, #FFD54F 100%); }
-        .seconds { background: linear-gradient(90deg, #4CAF50 60%, #81C784 100%); }
-
-        .countdown-text {
-            text-align: center;
-            font-size: 1.8em;
-            font-weight: bold;
-            margin-top: 10px;
-            color: var(--text-color);
-            letter-spacing: 2px;
-            text-shadow: 0 2px 8px rgba(97, 218, 251, 0.08);
-        }
-
-        .reminder-options {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-
-        .reminder-option label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            color: var(--light-text-color);
-        }
-
-        .reminder-option input[type="radio"] {
-            display: none;
-        }
-
-        .reminder-option input[type="radio"] + span {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 2px solid var(--light-text-color);
-            display: inline-block;
+            background: var(--background-gradient);
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
             position: relative;
-            margin-right: 5px;
-            background: #232b33;
-            box-shadow: 0 1px 4px rgba(97, 218, 251, 0.05);
+            overflow-x: hidden;
+            animation: fadeIn 0.8s ease-out;
+            touch-action: manipulation;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .reminder-option input[type="radio"]:checked + span::before {
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: var(--shadow-xl), var(--glow-primary); }
+            50% { box-shadow: var(--shadow-2xl), var(--glow-secondary); }
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        body::before {
             content: '';
-            width: 8px;
-            height: 8px;
-            background: var(--primary-gradient);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(97, 218, 251, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(168, 85, 247, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 60% 80%, rgba(240, 147, 251, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: glow 4s ease-in-out infinite;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+            animation: slideUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main-container {
+            background: var(--glass-background);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-2xl), inset 0 1px 0 var(--glass-light);
+            padding: 40px;
+            margin-bottom: 30px;
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(97, 218, 251, 0.15);
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-duration) ease;
+        }
+
+        .main-container:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-2xl), var(--glow-primary), inset 0 1px 0 var(--glass-medium);
+            border-color: rgba(97, 218, 251, 0.25);
+        }
+
+        .main-container::before {
+            content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            box-shadow: 0 1px 4px rgba(97, 218, 251, 0.12);
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
         }
 
-        .reminder-indicator {
-            height: 40px;
-            background: var(--warning-color);
-            margin: 15px 0;
-            width: 0;
-            transition: width 1s linear, background-color 1s linear;
-            border-radius: var(--border-radius);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        .main-container::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(97, 218, 251, 0.05), transparent);
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+            z-index: -1;
         }
 
-        label[for="appointmentTime"], label[for="reminder2h"] {
-            color: var(--light-text-color);
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
         }
 
-        /* Responsive */
-        @media (max-width: 700px) {
-            .container {
-                max-width: 98vw;
-                padding: 12px 4vw 18px 4vw;
-            }
-            .input-group {
-                padding: 10px 4vw 8px 4vw;
-            }
-            .appointment {
-                padding: 14px 4vw 12px 4vw;
-            }
-        }
-
-        /* App header with icon and title */
         .app-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            margin-bottom: 22px;
-            padding-top: 8px;
+            gap: 20px;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
         .app-icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 18px;
-            box-shadow: 0 2px 12px rgba(97,218,251,0.18);
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
             flex-shrink: 0;
-            background: #232526;
-            border: 2.5px solid var(--primary-color);
+            background: var(--primary-gradient);
+            border: 2px solid rgba(97, 218, 251, 0.3);
         }
 
         .app-title {
@@ -331,110 +225,1628 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 8px rgba(97, 218, 251, 0.08);
+            letter-spacing: 0.5px;
             margin: 0;
-            line-height: 1.1;
+            line-height: 1.2;
+        }
+
+        #currentTime {
+            font-size: 1.3em;
+            font-weight: 500;
+            text-align: center;
+            margin: 30px 0;
+            color: var(--light-text-color);
+            letter-spacing: 1px;
+            padding: 16px 24px;
+            background: rgba(97, 218, 251, 0.05);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(97, 218, 251, 0.1);
+        }
+
+        .form-section {
+            background: var(--card-background);
+            border-radius: var(--border-radius-xl);
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-light);
+            border: 1px solid var(--glass-light);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out 0.4s both;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(97, 218, 251, 0.4), transparent);
+        }
+
+        .form-row {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            color: var(--light-text-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+
+        label::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-gradient);
+            transition: width var(--transition-duration) ease;
+        }
+
+        .form-row:focus-within label::after {
+            width: 100%;
+        }
+
+        .field-help {
+            display: block;
+            color: var(--help-text-color);
+            font-size: 0.85em;
+            margin-top: 6px;
+            font-style: italic;
+            opacity: 0.8;
+            transition: opacity var(--transition-duration) ease;
+        }
+
+        .input-feedback {
+            font-size: 0.8em;
+            margin-top: 4px;
+            min-height: 16px;
+            transition: all var(--transition-duration) ease;
+        }
+
+        .input-feedback.success {
+            color: var(--success-color);
+        }
+
+        .input-feedback.error {
+            color: var(--alarm-color);
+        }
+
+        .form-row:focus-within .field-help {
+            opacity: 1;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 18px 24px;
+            border: 2px solid var(--input-border);
+            border-radius: var(--border-radius);
+            font-size: 1.1em;
+            background: var(--input-background);
+            color: var(--text-color);
+            transition: all var(--transition-duration) ease;
+            position: relative;
+            backdrop-filter: blur(10px);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: rgba(45, 55, 75, 1);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md), 0 0 0 4px rgba(97, 218, 251, 0.1);
+        }
+
+        input:hover, select:hover {
+            border-color: rgba(97, 218, 251, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Enhanced input styling for better UX */
+        input[type="time"] {
+            font-family: 'Roboto', monospace;
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        input[type="text"] {
+            text-transform: uppercase;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2361dafb' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 48px;
+        }
+
+        .reminder-section {
+            margin-bottom: 20px;
+        }
+
+        .reminder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .reminder-item {
+            position: relative;
+        }
+
+        .reminder-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .reminder-item label {
             display: flex;
             align-items: center;
-            min-height: 72px;
+            justify-content: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all var(--transition-duration) ease;
+            margin: 0;
+            text-transform: none;
+            font-size: 0.95em;
+            text-align: center;
+            min-height: 44px;
+        }
+
+        .reminder-item label:hover {
+            background: rgba(97, 218, 251, 0.1);
+            border-color: rgba(97, 218, 251, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .reminder-item input[type="radio"]:checked + label {
+            background: rgba(97, 218, 251, 0.1);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .volume-section {
+            margin-bottom: 20px;
+        }
+
+        .volume-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .volume-controls label {
+            min-width: 70px;
+            margin: 0;
+            text-transform: none;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--input-background);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            cursor: pointer;
+            border: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        #volumeValue {
+            min-width: 45px;
+            text-align: right;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .add-button {
+            width: 100%;
+            padding: 18px 20px;
+            background: var(--primary-gradient);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .add-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .add-button:hover::before {
+            left: 100%;
+        }
+
+        .add-button:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg), 0 10px 30px rgba(97, 218, 251, 0.3);
+            background: var(--secondary-gradient);
+        }
+
+        .add-button:active {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .add-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .appointments-section {
+            margin-top: 30px;
+        }
+
+        .appointments-section h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 24px;
+            font-weight: 700;
+            font-size: 1.6em;
+        }
+
+        .appointment {
+            background: var(--card-background);
+            padding: 30px 25px;
+            margin-bottom: 25px;
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-light);
+            border: 1px solid var(--glass-light);
+            position: relative;
+            transition: all var(--transition-duration) ease;
+            animation: slideUp 0.6s ease-out both;
+        }
+
+        .appointment:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-2xl), var(--glow-primary), inset 0 1px 0 var(--glass-medium);
+        }
+
+        .appointment-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .appointment-details {
+            flex: 1;
+        }
+
+        .appointment-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .appointment-timing {
+            background: rgba(97, 218, 251, 0.05);
+            border: 1px solid rgba(97, 218, 251, 0.1);
+            border-radius: var(--border-radius);
+            padding: 12px 16px;
+            margin: 12px 0;
+            font-size: 0.9em;
+        }
+
+        .timing-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .timing-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .timing-label {
+            color: var(--light-text-color);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .timing-value {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-family: 'Roboto', monospace;
+        }
+
+        .alarm-indicator {
+            background: var(--warning-gradient);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .countdown-container {
+            display: flex;
+            height: 60px;
+            background: rgba(15, 20, 35, 0.9);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid var(--glass-light);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .countdown-segment {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            position: relative;
+            transition: all 0.5s ease-out;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .countdown-number {
+            font-size: 1.3em;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .countdown-label {
+            font-size: 0.7em;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .countdown-segment::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .countdown-segment:last-child::after {
+            display: none;
+        }
+
+        .hours { 
+            background: linear-gradient(135deg, var(--hours-color) 0%, #4c6ef5 100%);
+        }
+        .minutes { 
+            background: linear-gradient(135deg, var(--minutes-color) 0%, #f06292 100%);
+        }
+        .seconds { 
+            background: linear-gradient(135deg, var(--seconds-color) 0%, #00d4aa 100%);
+        }
+
+        .countdown-text {
+            text-align: center;
+            font-size: 2.2em;
+            font-weight: 800;
+            margin: 20px 0;
+            color: var(--text-color);
+            letter-spacing: 3px;
+            font-family: 'Roboto', monospace;
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 20px rgba(97, 218, 251, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .countdown-text.urgent {
+            animation: urgentPulse 1s ease-in-out infinite;
+            font-size: 2.4em;
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { 
+                transform: scale(1);
+                text-shadow: 0 4px 20px rgba(239, 83, 80, 0.5);
+            }
+            50% { 
+                transform: scale(1.05);
+                text-shadow: 0 6px 30px rgba(239, 83, 80, 0.8);
+            }
+        }
+
+        .countdown-text.warning {
+            background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .reminder-indicator {
+            height: 10px;
+            background: rgba(97, 218, 251, 0.2);
+            margin: 20px 0;
+            width: 100%;
+            border-radius: 5px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            --progress: 0%;
+            --indicator-color: var(--primary-gradient);
+        }
+
+        .reminder-indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: var(--progress);
+            background: var(--indicator-color);
+            border-radius: 5px;
+            transition: width 1s ease-out, background 1s ease;
+            box-shadow: 0 0 10px rgba(255, 167, 38, 0.4);
+        }
+
+        .reminder-indicator::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .info-container {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-container p {
+            color: var(--light-text-color);
+            text-align: center;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 700px) {
+            .main-container {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .form-section {
+                padding: 20px;
+            }
+            
+            .app-title {
+                font-size: 1.8em;
+            }
+            
+            .app-icon {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .reminder-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .appointment {
+                padding: 16px;
+            }
+            
+            .appointment-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            
+            .appointment-buttons {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-container {
+                padding: 16px;
+            }
+            
+            .app-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .app-title {
+                font-size: 1.5em;
+            }
+            
+            .reminder-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        /* Appointment Button Styles */
+        .appointment-buttons {
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+            margin-left: 15px;
+        }
+
+        .appointment button {
+            min-height: 48px;
+            min-width: 48px;
+            padding: 12px 18px;
+            font-size: 0.9em;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition-duration) ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .appointment button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .appointment button:hover::before {
+            left: 100%;
+        }
+
+        .edit-btn {
+            background: var(--success-gradient);
+            color: #fff;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .edit-btn:hover {
+            background: linear-gradient(135deg, #388E3C 0%, #4CAF50 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg), 0 8px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .remove-btn {
+            background: var(--danger-gradient);
+            color: #fff;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .remove-btn:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg), 0 8px 25px rgba(244, 67, 54, 0.3);
+        }
+
+        .type-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8em;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .past {
+            opacity: 0.7;
+            filter: grayscale(20%);
+        }
+
+        .past .appointment-title {
+            text-decoration: line-through;
+        }
+
+        @media (max-width: 768px) {
+            .appointment-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .appointment-buttons {
+                margin-left: 0;
+                justify-content: flex-end;
+            }
+
+            .appointment button {
+                min-width: 44px;
+                padding: 10px 14px;
+                font-size: 0.8em;
+            }
+        }
+
+        /* PWA Enhancement Styles */
+        .install-button {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-duration) ease;
+            margin-left: 15px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .install-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .update-button {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--warning-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 9999;
+            box-shadow: var(--shadow-lg);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Enhanced mobile support and accessibility */
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .main-container {
+                margin-top: 10px;
+            }
+        }
+
+        /* Dark mode enhancements for PWA */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: #000000;
+                --card-background: rgba(20, 25, 40, 0.95);
+            }
+        }
+
+        /* Enhanced accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            :root {
+                --primary-color: #00ff00;
+                --text-color: #ffffff;
+                --background-color: #000000;
+            }
+        }
+
+        /* Focus indicators for accessibility */
+        .appointment button:focus-visible,
+        .add-button:focus-visible,
+        .reminder-item input:focus-visible + label,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+            cursor: wait;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid var(--primary-color);
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Enhanced error states */
+        .error {
+            border-color: var(--alarm-color) !important;
+            box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.2) !important;
+        }
+
+        .success {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.2) !important;
+        }
+
+        /* Haptic feedback indicator */
+        .haptic-feedback {
+            animation: hapticPulse 0.1s ease-out;
+        }
+
+        @keyframes hapticPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.98); }
+            100% { transform: scale(1); }
+        }
+
+        /* Attention-grabbing animations for countdown phase */
+        @keyframes gentleShake {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            10% { transform: translateX(-2px) translateY(-1px); }
+            20% { transform: translateX(2px) translateY(1px); }
+            30% { transform: translateX(-1px) translateY(-2px); }
+            40% { transform: translateX(1px) translateY(2px); }
+            50% { transform: translateX(-2px) translateY(1px); }
+            60% { transform: translateX(2px) translateY(-1px); }
+            70% { transform: translateX(-1px) translateY(2px); }
+            80% { transform: translateX(1px) translateY(-2px); }
+            90% { transform: translateX(-2px) translateY(-1px); }
+        }
+
+        @keyframes focusGlow {
+            0%, 100% { 
+                box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-light);
+                border-color: var(--glass-light);
+            }
+            50% { 
+                box-shadow: var(--shadow-2xl), var(--glow-primary), inset 0 1px 0 var(--glass-medium);
+                border-color: rgba(97, 218, 251, 0.4);
+            }
+        }
+
+        @keyframes pulseAttention {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Appointment attention states */
+        .appointment.in-countdown {
+            animation: focusGlow 3s ease-in-out infinite;
+            position: relative;
+            z-index: 10;
+        }
+
+        .appointment.shake-attention {
+            animation: gentleShake 0.6s ease-in-out;
+        }
+
+        .appointment.urgent-attention {
+            animation: gentleShake 0.6s ease-in-out, pulseAttention 2s ease-in-out infinite;
+        }
+
+        .appointment.warning-attention {
+            animation: focusGlow 2s ease-in-out infinite, pulseAttention 3s ease-in-out infinite;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="app-header">
-            <img src="vta-512.png" alt="App Icon" class="app-icon">
-            <span class="app-title">Visual Appointment Reminders</span>
-        </div>
-        <div id="currentTime"></div>
-        <div class="input-group">
-            <select id="tagSelect">
-                <option value="General">General</option>
-                <option value="Home Appointment">Home Appointment</option>
-                <option value="Online Appointment">Online Appointment</option>
-                <option value="Meeting">Meeting</option>
-                <option value="Travel">Travel</option>
-                <option value="Report">Report</option>
-                <option value="Service Plan">Service Plan</option>
-                <option value="Stats">Stats</option>
-                <option value="Office">Office</option>
-                <option value="Other">Other</option>
-            </select>
-            <input type="text" id="descInput" maxlength="2" placeholder="Initials (2 letters)">
-            <label for="appointmentTime">Alarm Time:</label> 
-            <input type="time" id="appointmentTime">
-
-            <label for="reminder2h">Reminder Time:</label>
-            <div class="reminder-options">
-                <label for="reminder2h" class="reminder-option">
-                    <input type="radio" name="reminder" id="reminder2h" value="120">
-                    <span></span> 2h
-                </label>
-                <label for="reminder1h" class="reminder-option">
-                    <input type="radio" name="reminder" id="reminder1h" value="60" checked>
-                    <span></span> 1h
-                </label>
-                <label for="reminder45m" class="reminder-option">
-                    <input type="radio" name="reminder" id="reminder45m" value="45">
-                    <span></span> 45m
-                </label>
-                <label for="reminder20m" class="reminder-option">
-                    <input type="radio" name="reminder" id="reminder20m" value="20">
-                    <span></span> 20m
-                </label>
-                <label for="reminder10m" class="reminder-option">
-                    <input type="radio" name="reminder" id="reminder10m" value="10">
-                    <span></span> 10m
-                </label>
-                <label for="reminder5m" class="reminder-option">
-                    <input type="radio" name="reminder" id="reminder5m" value="5">
-                    <span></span> 5m
-                </label>
+    <div class="app-container">
+        <div class="main-container">
+            <div class="app-header">
+                <img src="vta-512.png" alt="App Icon" class="app-icon">
+                <h1 class="app-title">Visual Appointment Reminders</h1>
             </div>
-
-            <button onclick="addAppointment()">Add Appointment</button>
+            
+            <div id="currentTime"></div>
+            
+            <div class="form-section">
+                <div class="form-row">
+                    <label for="tagSelect">Appointment Type:</label>
+                    <select id="tagSelect">
+                        <option value="General">General</option>
+                        <option value="Home Appointment">Home Appointment</option>
+                        <option value="Online Appointment">Online Appointment</option>
+                        <option value="Meeting">Meeting</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Report">Report</option>
+                        <option value="Service Plan">Service Plan</option>
+                        <option value="Stats">Stats</option>
+                        <option value="Office">Office</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <label for="descInput">Appointment Initials (2 letters):</label>
+                    <input type="text" id="descInput" maxlength="2" placeholder="e.g., DR, MT, WK" pattern="[A-Za-z]{2}" title="Please enter exactly 2 letters">
+                    <small class="field-help">Short code to identify this appointment type</small>
+                    <div class="input-feedback" id="descFeedback"></div>
+                </div>
+                
+                <div class="form-row">
+                    <label for="appointmentTime">Alarm Time:</label>
+                    <input type="time" id="appointmentTime" required>
+                    <small class="field-help">Time when the appointment starts</small>
+                    <div class="input-feedback" id="timeFeedback"></div>
+                </div>
+                
+                <div class="reminder-section">
+                    <label>Reminder Time:</label>
+                    <div class="reminder-grid">
+                        <div class="reminder-item">
+                            <input type="radio" name="reminder" id="reminder2h" value="120">
+                            <label for="reminder2h">2h</label>
+                        </div>
+                        <div class="reminder-item">
+                            <input type="radio" name="reminder" id="reminder1h" value="60" checked>
+                            <label for="reminder1h">1h</label>
+                        </div>
+                        <div class="reminder-item">
+                            <input type="radio" name="reminder" id="reminder45m" value="45">
+                            <label for="reminder45m">45m</label>
+                        </div>
+                        <div class="reminder-item">
+                            <input type="radio" name="reminder" id="reminder20m" value="20">
+                            <label for="reminder20m">20m</label>
+                        </div>
+                        <div class="reminder-item">
+                            <input type="radio" name="reminder" id="reminder10m" value="10">
+                            <label for="reminder10m">10m</label>
+                        </div>
+                        <div class="reminder-item">
+                            <input type="radio" name="reminder" id="reminder5m" value="5">
+                            <label for="reminder5m">5m</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="volume-section">
+                    <label>Volume Control:</label>
+                    <div class="volume-controls">
+                        <label for="volumeSlider">Volume:</label>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="80">
+                        <span id="volumeValue">80%</span>
+                    </div>
+                </div>
+                
+                <button class="add-button" onclick="addAppointment()">Add Appointment</button>
+            </div>
+            
+            <div class="appointments-section" id="appointmentList"></div>
         </div>
-
-        <div id="appointmentList"></div>
+        
+        <div class="info-container">
+            <p>
+                <strong>Note:</strong> The Visual Appointment Reminders app does not save data and will not function if your phone or computer goes to sleep. I use it with Microsoft Edge or Chrome browsers to install it as an app on the desktop, then leave it open on my second screen. It acts as a visual reminder of upcoming appointments. Only the reminder time will create an audible alarm; the appointment time is silent so it doesn't disturb meetings that may be beginning at that time.
+            </p>
+        </div>
     </div>
 
-    <div class="container" style="margin-top: 30px; padding: 20px; background-color: var(--card-background); border-radius: var(--border-radius); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);">
-        <p style="color: var(--light-text-color); text-align: center;">
-            <strong>Note:</strong> The Visual Appointment Reminders app does not save data and will not function if your phone or computer goes to sleep. I use it with Microsoft Edge or Chrome browsers to install it as an app on the desktop, then leave it open on my second screen. It acts as a visual reminder of upcoming appointments. Only the reminder time will create an audible alarm; the appointment time is silent so it doesn't disturb meetings that may be beginning at that time.
-        </p>
-    </div>
-
-    <audio id="warningBeep">
+    <audio id="warningBeep" preload="auto" crossorigin="anonymous">
         <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAeAy6R1++7cyMFKIHH8N6QQAoWXrLq665UFApGn97z" type="audio/wav">
     </audio>
 
-    <audio id="alarmSound">
+    <audio id="alarmSound" preload="auto" crossorigin="anonymous">
         <source src="https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3" type="audio/mpeg">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAeAy6R1++7cyMFKIHH8N6QQAoWXrLq665UFApGn97z" type="audio/wav">
     </audio>
 
     <script>
+        // Global variables
         let appointments = [];
         let countdownIntervals = {};
         let reminderIntervals = {};
         let isDataInput = false; 
+        let currentVolume = 0.8;
+        let editingAppointmentId = null;
+        let wakeLock = null;
+        let serviceWorkerRegistration = null;
+        let isAppInBackground = false;
+        let backgroundSyncSupported = false;
 
-        if ('Notification' in window && Notification.permission !== 'granted') {
-            Notification.requestPermission();
+        // PWA and background functionality
+        class PWAManager {
+            constructor() {
+                this.isInstalled = false;
+                this.deferredPrompt = null;
+                this.init();
+            }
+
+            async init() {
+                // Check if app is installed
+                this.checkInstallStatus();
+                
+                // Listen for install prompt
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    this.showInstallButton();
+                });
+
+                // Listen for app installed
+                window.addEventListener('appinstalled', () => {
+                    this.isInstalled = true;
+                    this.hideInstallButton();
+                    console.log('PWA installed successfully');
+                });
+
+                // Handle visibility changes for background functionality
+                document.addEventListener('visibilitychange', () => {
+                    isAppInBackground = document.hidden;
+                    this.handleVisibilityChange();
+                });
+
+                // Initialize notification permission
+                await this.requestNotificationPermission();
+                
+                // Setup background sync if supported
+                this.setupBackgroundSync();
+            }
+
+            checkInstallStatus() {
+                // Check various ways to detect if PWA is installed
+                if (window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone || 
+                    document.referrer.includes('android-app://')) {
+                    this.isInstalled = true;
+                }
+            }
+
+            showInstallButton() {
+                // Add install button to UI if not already shown
+                if (!document.getElementById('pwa-install-btn')) {
+                    const installBtn = document.createElement('button');
+                    installBtn.id = 'pwa-install-btn';
+                    installBtn.innerHTML = '📱 Install App';
+                    installBtn.className = 'install-button';
+                    installBtn.onclick = () => this.installApp();
+                    
+                    const header = document.querySelector('.app-header');
+                    header.appendChild(installBtn);
+                }
+            }
+
+            hideInstallButton() {
+                const installBtn = document.getElementById('pwa-install-btn');
+                if (installBtn) {
+                    installBtn.remove();
+                }
+            }
+
+            async installApp() {
+                if (this.deferredPrompt) {
+                    this.deferredPrompt.prompt();
+                    const choiceResult = await this.deferredPrompt.userChoice;
+                    
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    
+                    this.deferredPrompt = null;
+                    this.hideInstallButton();
+                }
+            }
+
+            async requestNotificationPermission() {
+                if ('Notification' in window) {
+                    const permission = await Notification.requestPermission();
+                    console.log('Notification permission:', permission);
+                    return permission === 'granted';
+                }
+                return false;
+            }
+
+            async setupBackgroundSync() {
+                if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+                    backgroundSyncSupported = true;
+                    console.log('Background sync supported');
+                }
+            }
+
+            handleVisibilityChange() {
+                if (isAppInBackground) {
+                    console.log('App moved to background');
+                    this.setupBackgroundAlarms();
+                } else {
+                    console.log('App moved to foreground');
+                    this.cancelBackgroundAlarms();
+                }
+            }
+
+            setupBackgroundAlarms() {
+                // Enhanced background functionality for alarms
+                appointments.forEach(appointment => {
+                    const now = new Date();
+                    const timeUntil = appointment.appointmentTime - now;
+                    
+                    if (timeUntil > 0) {
+                        // Use service worker for background notifications
+                        this.scheduleBackgroundNotification(appointment, timeUntil);
+                    }
+                });
+            }
+
+            async scheduleBackgroundNotification(appointment, timeUntil) {
+                if (serviceWorkerRegistration && 'showNotification' in serviceWorkerRegistration) {
+                    // Schedule notification through service worker
+                    setTimeout(async () => {
+                        if (document.hidden) {
+                            await serviceWorkerRegistration.showNotification(
+                                'Appointment Reminder',
+                                {
+                                    body: `${appointment.tag} - Time to get ready!`,
+                                    icon: './vta-192.png',
+                                    badge: './vta-192.png',
+                                    vibrate: [200, 100, 200],
+                                    tag: `appointment-${appointment.id}`,
+                                    requireInteraction: true,
+                                    actions: [
+                                        {
+                                            action: 'view',
+                                            title: 'View',
+                                            icon: './vta-192.png'
+                                        }
+                                    ]
+                                }
+                            );
+                        }
+                    }, Math.max(0, timeUntil - (appointment.reminderMinutes * 60 * 1000)));
+                }
+            }
+
+            cancelBackgroundAlarms() {
+                // Cancel any scheduled background notifications
+                if (serviceWorkerRegistration) {
+                    serviceWorkerRegistration.getNotifications().then(notifications => {
+                        notifications.forEach(notification => {
+                            if (notification.tag.startsWith('appointment-')) {
+                                notification.close();
+                            }
+                        });
+                    });
+                }
+            }
         }
 
-        function updateCurrentTime() {
-            const now = new Date();
-            document.getElementById('currentTime').textContent = `Current Time: ${now.toLocaleTimeString()}`;
+        // Enhanced Wake Lock Manager
+        class WakeLockManager {
+            constructor() {
+                this.wakeLock = null;
+                this.isSupported = 'wakeLock' in navigator;
+                this.init();
+            }
+
+            init() {
+                console.log('Wake lock supported:', this.isSupported);
+                
+                // Handle visibility changes
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && this.wakeLock) {
+                        this.release();
+                    } else if (!document.hidden && appointments.length > 0) {
+                        this.request();
+                    }
+                });
+
+                // Handle page beforeunload
+                window.addEventListener('beforeunload', () => {
+                    this.release();
+                });
+            }
+
+            async request() {
+                if (!this.isSupported || this.wakeLock) return;
+
+                try {
+                    this.wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake lock acquired');
+                    
+                    this.wakeLock.addEventListener('release', () => {
+                        console.log('Wake lock released');
+                        this.wakeLock = null;
+                    });
+                } catch (err) {
+                    console.error('Failed to acquire wake lock:', err);
+                }
+            }
+
+            release() {
+                if (this.wakeLock) {
+                    this.wakeLock.release();
+                    this.wakeLock = null;
+                    console.log('Wake lock manually released');
+                }
+            }
+
+            update() {
+                if (appointments.length > 0) {
+                    this.request();
+                } else {
+                    this.release();
+                }
+            }
         }
 
-        setInterval(updateCurrentTime, 1000);
-        updateCurrentTime();
+        // Enhanced Audio Manager for PWA
+        class AudioManager {
+            constructor() {
+                this.warningAudio = null;
+                this.alarmAudio = null;
+                this.audioContext = null;
+                this.isAudioReady = false;
+                this.init();
+            }
 
+            async init() {
+                // Initialize audio elements
+                this.warningAudio = document.getElementById('warningBeep');
+                this.alarmAudio = document.getElementById('alarmSound');
+
+                // Set initial volume
+                this.updateVolume(currentVolume);
+
+                // Handle audio context for mobile browsers
+                await this.initAudioContext();
+
+                // Preload audio for better performance
+                this.preloadAudio();
+
+                // Handle audio loading
+                this.warningAudio.addEventListener('canplaythrough', () => {
+                    console.log('Warning audio ready');
+                });
+
+                this.alarmAudio.addEventListener('canplaythrough', () => {
+                    console.log('Alarm audio ready');
+                });
+            }
+
+            async initAudioContext() {
+                try {
+                    // Create audio context for better mobile support
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.audioContext = new AudioContext();
+                        
+                        // Resume audio context on first user interaction
+                        const resumeAudio = async () => {
+                            if (this.audioContext && this.audioContext.state === 'suspended') {
+                                await this.audioContext.resume();
+                                console.log('Audio context resumed');
+                            }
+                            document.removeEventListener('touchstart', resumeAudio);
+                            document.removeEventListener('click', resumeAudio);
+                        };
+                        
+                        document.addEventListener('touchstart', resumeAudio);
+                        document.addEventListener('click', resumeAudio);
+                    }
+                } catch (error) {
+                    console.error('Failed to initialize audio context:', error);
+                }
+            }
+
+            preloadAudio() {
+                // Force load audio files
+                this.warningAudio.load();
+                this.alarmAudio.load();
+            }
+
+            updateVolume(volume) {
+                if (this.warningAudio) this.warningAudio.volume = volume;
+                if (this.alarmAudio) this.alarmAudio.volume = volume;
+            }
+
+            async playWarning() {
+                try {
+                    // Reset audio to beginning
+                    this.warningAudio.currentTime = 0;
+                    
+                    // Play audio
+                    const playPromise = this.warningAudio.play();
+                    
+                    if (playPromise !== undefined) {
+                        await playPromise;
+                        console.log('Warning audio played successfully');
+                    }
+                } catch (error) {
+                    console.error('Failed to play warning audio:', error);
+                    // Fallback: try to play with user gesture
+                    this.requestAudioPermission('warning');
+                }
+            }
+
+            async playAlarm() {
+                try {
+                    // Reset audio to beginning
+                    this.alarmAudio.currentTime = 0;
+                    
+                    // Play audio
+                    const playPromise = this.alarmAudio.play();
+                    
+                    if (playPromise !== undefined) {
+                        await playPromise;
+                        console.log('Alarm audio played successfully');
+                    }
+                } catch (error) {
+                    console.error('Failed to play alarm audio:', error);
+                    // Fallback: try to play with user gesture
+                    this.requestAudioPermission('alarm');
+                }
+            }
+
+            requestAudioPermission(type) {
+                // Show user prompt to enable audio
+                const playBtn = document.createElement('button');
+                playBtn.innerHTML = `🔊 Enable ${type} sound`;
+                playBtn.onclick = () => {
+                    if (type === 'warning') {
+                        this.warningAudio.play();
+                    } else {
+                        this.alarmAudio.play();
+                    }
+                    playBtn.remove();
+                };
+                document.body.appendChild(playBtn);
+            }
+        }
+
+        // Initialize PWA managers
+        const pwaManager = new PWAManager();
+        const wakeLockManager = new WakeLockManager();
+        const audioManager = new AudioManager();
+
+        // Color mapping for appointment types
+        const appointmentColors = {
+            'General': '#61dafb',
+            'Home Appointment': '#4ade80',
+            'Online Appointment': '#3b82f6',
+            'Meeting': '#a855f7',
+            'Travel': '#f59e0b',
+            'Report': '#ef4444',
+            'Service Plan': '#06b6d4',
+            'Stats': '#84cc16',
+            'Office': '#64748b',
+            'Other': '#8b5cf6'
+        };
+
+        // Enhanced service worker registration and initialization
+        async function initializeApp() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            // Register service worker with enhanced features
+            if ('serviceWorker' in navigator) {
+                try {
+                    serviceWorkerRegistration = await navigator.serviceWorker.register('./service-worker.js');
+                    console.log('Service Worker registered successfully');
+                    
+                    // Listen for service worker updates
+                    serviceWorkerRegistration.addEventListener('updatefound', () => {
+                        const newWorker = serviceWorkerRegistration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New version available
+                                showUpdateAvailable();
+                            }
+                        });
+                    });
+                    
+                    // Listen for messages from service worker
+                    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+                    
+                } catch (error) {
+                    console.error('Service Worker registration failed:', error);
+                }
+            }
+            
+            // Setup volume control with haptic feedback
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeValue = document.getElementById('volumeValue');
+            
+            volumeSlider.addEventListener('input', function() {
+                currentVolume = this.value / 100;
+                volumeValue.textContent = this.value + '%';
+                audioManager.updateVolume(currentVolume);
+                
+                // Haptic feedback on volume change
+                hapticFeedback();
+            });
+            
+            // Initialize audio
+            await audioManager.init();
+            
+            // Setup radio button styling
+            const radioButtons = document.querySelectorAll('input[name="reminder"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', updateRadioButtonStyles);
+            });
+            updateRadioButtonStyles();
+            
+            // Setup keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && (e.target.id === 'appointmentTime' || document.getElementById('appointmentTime').value)) {
+                    e.preventDefault();
+                    addAppointment();
+                }
+                
+                if (e.key === 'Escape' && editingAppointmentId) {
+                    e.preventDefault();
+                    cancelEdit();
+                }
+            });
+            
+            // Setup form change detection
+            const inputFields = document.querySelectorAll('input, select');
+            inputFields.forEach(input => {
+                input.addEventListener('input', () => {
+                    isDataInput = true;
+                });
+            });
+            
+            // Setup beforeunload warning
+            window.addEventListener('beforeunload', (event) => {
+                if (isDataInput) {
+                    event.preventDefault();
+                    event.returnValue = '';
+                }
+            });
+
+            // Handle URL parameters for shortcuts
+            handleURLParameters();
+            
+            // Setup auto-focus and smart defaults
+            setupSmartDefaults();
+        }
+
+        // Haptic feedback function
+        function hapticFeedback(intensity = 'medium') {
+            if ('vibrate' in navigator) {
+                const patterns = {
+                    light: [10],
+                    medium: [20],
+                    strong: [50]
+                };
+                navigator.vibrate(patterns[intensity] || patterns.medium);
+            }
+            
+            // Visual feedback for devices without haptic support
+            document.body.classList.add('haptic-feedback');
+            setTimeout(() => {
+                document.body.classList.remove('haptic-feedback');
+            }, 100);
+        }
+
+        // Enhanced form validation
+        function setupFormValidation() {
+            const descInput = document.getElementById('descInput');
+            const timeInput = document.getElementById('appointmentTime');
+            
+            descInput.addEventListener('input', () => validateField(descInput));
+            descInput.addEventListener('blur', () => validateField(descInput));
+            timeInput.addEventListener('input', () => validateField(timeInput));
+            timeInput.addEventListener('blur', () => validateField(timeInput));
+        }
+
+        function validateField(field) {
+            const feedbackElement = document.getElementById(field.id.replace('Input', 'Feedback').replace('Time', 'Feedback'));
+            if (!feedbackElement) return;
+
+            let isValid = true;
+            let message = '';
+
+            switch (field.id) {
+                case 'descInput':
+                    if (field.value.length === 0) {
+                        message = '';
+                    } else if (field.value.length < 2) {
+                        isValid = false;
+                        message = 'Please enter 2 letters';
+                    } else if (!/^[A-Za-z]{2}$/.test(field.value)) {
+                        isValid = false;
+                        message = 'Only letters allowed';
+                    } else {
+                        message = '✓ Perfect!';
+                    }
+                    break;
+                    
+                case 'appointmentTime':
+                    if (field.value) {
+                        const now = new Date();
+                        const selectedTime = new Date(now.toDateString() + ' ' + field.value);
+                        if (selectedTime <= now) {
+                            selectedTime.setDate(selectedTime.getDate() + 1);
+                        }
+                        
+                        const timeDiff = selectedTime - now;
+                        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                        
+                        if (timeDiff < 5 * 60 * 1000) { // Less than 5 minutes
+                            isValid = false;
+                            message = 'Too soon! Please select a time at least 5 minutes away';
+                        } else {
+                            message = `✓ Appointment in ${hours}h ${minutes}m`;
+                        }
+                    }
+                    break;
+            }
+
+            // Update field styling
+            field.classList.toggle('error', !isValid && field.value);
+            field.classList.toggle('success', isValid && field.value && message.includes('✓'));
+            
+            // Update feedback message
+            feedbackElement.textContent = message;
+            feedbackElement.className = `input-feedback ${isValid ? 'success' : 'error'}`;
+        }
+
+        // Smart auto-focus (no default time)
+        function setupSmartDefaults() {
+            // Auto-focus on first input when page loads
+            setTimeout(() => {
+                document.getElementById('tagSelect').focus();
+            }, 500);
+        }
+
+        // Enhanced add appointment with better UX
         function addAppointment() {
+            const addButton = document.querySelector('.add-button');
             const tag = document.getElementById('tagSelect').value;
-            const desc = document.getElementById('descInput').value.toUpperCase();
+            const desc = document.getElementById('descInput').value.toUpperCase().trim();
             const time = document.getElementById('appointmentTime').value;
+
+            // Validate inputs
+            if (!time) {
+                showErrorMessage('Please set a valid appointment time.');
+                document.getElementById('appointmentTime').focus();
+                hapticFeedback('strong');
+                return;
+            }
+
+            if (desc && desc.length !== 2) {
+                showErrorMessage('Appointment initials must be exactly 2 letters.');
+                document.getElementById('descInput').focus();
+                hapticFeedback('strong');
+                return;
+            }
+
+            if (desc && !/^[A-Za-z]{2}$/.test(desc)) {
+                showErrorMessage('Appointment initials can only contain letters.');
+                document.getElementById('descInput').focus();
+                hapticFeedback('strong');
+                return;
+            }
+
+            // Show loading state
+            addButton.classList.add('loading');
+            addButton.disabled = true;
+
+            // Haptic feedback for successful action
+            hapticFeedback('medium');
 
             let reminderMinutes = 60;
             const reminderOptions = document.querySelectorAll('input[name="reminder"]');
@@ -445,45 +1857,310 @@
                 }
             }
 
-            if (time) {
-                const id = Date.now();
-                const now = new Date();
-                const appointmentTime = new Date(now.toDateString() + ' ' + time);
-                if (appointmentTime <= now) {
-                    appointmentTime.setDate(appointmentTime.getDate() + 1); 
+            const now = new Date();
+            const appointmentTime = new Date(now.toDateString() + ' ' + time);
+            if (appointmentTime <= now) {
+                appointmentTime.setDate(appointmentTime.getDate() + 1); 
+            }
+            
+            // Check if time is too soon
+            const timeDiff = appointmentTime - now;
+            if (timeDiff < 5 * 60 * 1000) { // Less than 5 minutes
+                showErrorMessage('Please select a time at least 5 minutes from now.');
+                addButton.classList.remove('loading');
+                addButton.disabled = false;
+                return;
+            }
+
+            const totalDuration = appointmentTime - now;
+
+            if (editingAppointmentId) {
+                // Edit existing appointment
+                const appointmentIndex = appointments.findIndex(app => app.id === editingAppointmentId);
+                if (appointmentIndex !== -1) {
+                    clearInterval(countdownIntervals[editingAppointmentId]);
+                    clearInterval(reminderIntervals[editingAppointmentId]);
+
+                    appointments[appointmentIndex] = {
+                        id: editingAppointmentId,
+                        tag: tag,
+                        desc: desc || tag.substring(0, 2).toUpperCase(),
+                        appointmentTime: appointmentTime,
+                        reminderMinutes: reminderMinutes,
+                        totalDuration: totalDuration
+                    };
                 }
-                const totalDuration = appointmentTime - now;
-                appointments.push({ id, tag, desc, time, createdAt: now, totalDuration, appointmentTime, reminderMinutes, reminderPassed: false });
-                appointments.sort((a, b) => a.appointmentTime - b.appointmentTime);
-                updateAppointmentList();
+                editingAppointmentId = null;
+                addButton.textContent = 'Add Appointment';
+                showSuccessMessage('Appointment updated successfully!');
+            } else {
+                // Add new appointment
+                const appointment = {
+                    id: Date.now(),
+                    tag: tag,
+                    desc: desc || tag.substring(0, 2).toUpperCase(),
+                    appointmentTime: appointmentTime,
+                    reminderMinutes: reminderMinutes,
+                    totalDuration: totalDuration
+                };
+                appointments.push(appointment);
+                showSuccessMessage('Appointment added successfully!');
+            }
+
+            appointments.sort((a, b) => a.appointmentTime - b.appointmentTime);
+            updateAppointmentList();
+            updateWakeLock();
+            updatePageTitle();
+            
+            // Reset form with enhanced UX
+            setTimeout(() => {
                 document.getElementById('descInput').value = '';
                 document.getElementById('appointmentTime').value = '';
+                
+                addButton.classList.remove('loading');
+                addButton.disabled = false;
+                
+                if (!editingAppointmentId) {
+                    document.getElementById('tagSelect').focus();
+                }
+            }, 300);
 
-                isDataInput = true; 
-            } else {
-                alert('Please set a valid appointment time.');
+            isDataInput = false; // Reset form state
+        }
+
+        function handleServiceWorkerMessage(event) {
+            const { type, payload } = event.data;
+            
+            switch (type) {
+                case 'SYNC_APPOINTMENTS':
+                    console.log('Appointments synced:', payload);
+                    break;
+                case 'CHECK_APPOINTMENTS':
+                    console.log('Background appointment check:', payload);
+                    break;
             }
         }
 
+        // Enhanced message system
+        function showErrorMessage(message) {
+            showMessage(message, 'error');
+        }
+
+        function showSuccessMessage(message) {
+            showMessage(message, 'success');
+        }
+
+        function showMessage(message, type = 'info') {
+            // Remove any existing messages
+            const existingMessage = document.querySelector('.app-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const messageEl = document.createElement('div');
+            messageEl.className = `app-message ${type}`;
+            messageEl.innerHTML = `
+                <div class="message-content">
+                    <span class="message-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                    <span class="message-text">${message}</span>
+                    <button class="message-close" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+            `;
+            
+            // Add styles if not already added
+            if (!document.querySelector('.message-styles')) {
+                const styles = document.createElement('style');
+                styles.className = 'message-styles';
+                styles.textContent = `
+                    .app-message {
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        z-index: 10000;
+                        animation: slideDown 0.3s ease-out;
+                        max-width: 90vw;
+                        box-shadow: var(--shadow-2xl);
+                    }
+                    .app-message.success { background: var(--success-gradient); }
+                    .app-message.error { background: var(--alarm-gradient); }
+                    .app-message.info { background: var(--primary-gradient); }
+                    .message-content {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        padding: 16px 20px;
+                        border-radius: var(--border-radius);
+                        color: white;
+                        font-weight: 600;
+                        backdrop-filter: blur(10px);
+                    }
+                    .message-close {
+                        background: none;
+                        border: none;
+                        color: white;
+                        font-size: 20px;
+                        cursor: pointer;
+                        padding: 0;
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        transition: background-color 0.2s ease;
+                    }
+                    .message-close:hover {
+                        background-color: rgba(255, 255, 255, 0.2);
+                    }
+                `;
+                document.head.appendChild(styles);
+            }
+
+            document.body.appendChild(messageEl);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (messageEl.parentElement) {
+                    messageEl.style.animation = 'slideUp 0.3s ease-out forwards';
+                    setTimeout(() => messageEl.remove(), 300);
+                }
+            }, 5000);
+
+            return messageEl;
+        }
+
+        function showUpdateAvailable() {
+            const updateBtn = document.createElement('button');
+            updateBtn.innerHTML = '🔄 Update Available - Click to Refresh';
+            updateBtn.className = 'update-button';
+            updateBtn.onclick = () => {
+                window.location.reload();
+            };
+            
+            document.body.insertBefore(updateBtn, document.body.firstChild);
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                if (updateBtn.parentNode) {
+                    updateBtn.remove();
+                }
+            }, 10000);
+        }
+
+        function handleURLParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            
+            if (action === 'add') {
+                // Focus on the first input field
+                document.getElementById('tagSelect').focus();
+            }
+        }
+
+        // Update wake lock management
+        function updateWakeLock() {
+            wakeLockManager.update();
+        }
+
+        // Update current time display
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = `Current Time: ${now.toLocaleTimeString()}`;
+        }
+
+        // Update radio button styles
+        function updateRadioButtonStyles() {
+            const reminderItems = document.querySelectorAll('.reminder-item');
+            reminderItems.forEach(item => {
+                const radio = item.querySelector('input[type="radio"]');
+                const label = item.querySelector('label');
+                
+                if (radio.checked) {
+                    label.style.background = 'rgba(97, 218, 251, 0.1)';
+                    label.style.borderColor = 'var(--primary-color)';
+                    label.style.color = 'var(--primary-color)';
+                } else {
+                    label.style.background = 'rgba(255, 255, 255, 0.03)';
+                    label.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                    label.style.color = 'var(--light-text-color)';
+                }
+            });
+        }
+
+        // Note: Enhanced addAppointment function is already defined above
+
+        // Update appointment list display
         function updateAppointmentList() {
             const list = document.getElementById('appointmentList');
+            
+            if (appointments.length === 0) {
+                list.innerHTML = '';
+                return;
+            }
+            
             list.innerHTML = '<h2>Appointments</h2>';
+            
             appointments.forEach((app) => {
                 const appointmentElement = document.createElement('div');
                 appointmentElement.className = 'appointment';
                 appointmentElement.id = `appointment-${app.id}`;
+                
+                // Get the color for this appointment type
+                const appointmentColor = appointmentColors[app.tag] || '#61dafb';
+                
+                // Apply color coding to the appointment border
+                appointmentElement.style.borderLeft = `4px solid ${appointmentColor}`;
+                appointmentElement.style.boxShadow = `0 2px 8px rgba(97, 218, 251, 0.08), inset 0 0 0 1px ${appointmentColor}20`;
+                
                 appointmentElement.innerHTML = `
                     <div class="appointment-info">
-                        <span>${app.tag} ${app.desc ? `(${app.desc})` : ''} at ${app.time} (Reminder: ${app.reminderMinutes} mins before)</span>
-                        <button onclick="removeAppointment(${app.id})">Remove</button>
+                        <div class="appointment-details">
+                            <div class="appointment-title" style="color: ${appointmentColor};">
+                                <div class="type-indicator" style="background: ${appointmentColor};">${app.desc || app.tag.substring(0, 2).toUpperCase()}</div>
+                                <span>${app.tag}</span>
+                                ${app.desc && app.desc !== app.tag.substring(0, 2).toUpperCase() ? `<span style="opacity: 0.8;">(${app.desc})</span>` : ''}
+                            </div>
+                            <div class="appointment-timing">
+                                <div class="timing-row">
+                                    <span class="timing-label">🕐 Appointment Time:</span>
+                                    <span class="timing-value">${app.appointmentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                </div>
+                                <div class="timing-row">
+                                    <span class="timing-label">⏰ Reminder:</span>
+                                    <span class="timing-value">${app.reminderMinutes} minutes before</span>
+                                </div>
+                                <div class="timing-row">
+                                    <span class="timing-label">📅 Date:</span>
+                                    <span class="timing-value">${app.appointmentTime.toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="appointment-buttons">
+                            <button class="edit-btn" onclick="editAppointment(${app.id})" title="Edit this appointment">
+                                ✏️ <span>Edit</span>
+                            </button>
+                            <button class="remove-btn" onclick="removeAppointment(${app.id})" title="Remove this appointment">
+                                🗑️ <span>Remove</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="countdown-container" id="countdown-${app.id}">
-                        <div class="countdown-segment hours" id="hours-${app.id}"></div>
-                        <div class="countdown-segment minutes" id="minutes-${app.id}"></div>
-                        <div class="countdown-segment seconds" id="seconds-${app.id}"></div>
+                        <div class="countdown-segment hours" id="hours-${app.id}">
+                            <div class="countdown-number">0</div>
+                            <div class="countdown-label">Hours</div>
+                        </div>
+                        <div class="countdown-segment minutes" id="minutes-${app.id}">
+                            <div class="countdown-number">0</div>
+                            <div class="countdown-label">Minutes</div>
+                        </div>
+                        <div class="countdown-segment seconds" id="seconds-${app.id}">
+                            <div class="countdown-number">0</div>
+                            <div class="countdown-label">Seconds</div>
+                        </div>
                     </div>
                     <div class="reminder-indicator" id="reminder-indicator-${app.id}"></div>
-                    <div class="countdown-text" id="countdown-text-${app.id}"></div>
+                    <div class="countdown-text" id="countdown-text-${app.id}">Loading...</div>
                 `;
                 list.appendChild(appointmentElement);
                 
@@ -496,17 +2173,55 @@
             });
         }
 
+        // Edit appointment
+        function editAppointment(id) {
+            const appointment = appointments.find(app => app.id === id);
+            if (appointment) {
+                document.getElementById('tagSelect').value = appointment.tag;
+                document.getElementById('descInput').value = appointment.desc;
+                document.getElementById('appointmentTime').value = appointment.time;
+                
+                const reminderOptions = document.querySelectorAll('input[name="reminder"]');
+                reminderOptions.forEach(option => {
+                    option.checked = parseInt(option.value) === appointment.reminderMinutes;
+                });
+                
+                updateRadioButtonStyles();
+                editingAppointmentId = id;
+                document.querySelector('.add-button').textContent = 'Update Appointment';
+                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            editingAppointmentId = null;
+            document.querySelector('.add-button').textContent = 'Add Appointment';
+            document.getElementById('descInput').value = '';
+            document.getElementById('appointmentTime').value = '';
+            document.getElementById('reminder1h').checked = true;
+            updateRadioButtonStyles();
+        }
+
+        // Remove appointment
         function removeAppointment(id) {
+            if (editingAppointmentId === id) {
+                cancelEdit();
+            }
+            
             appointments = appointments.filter(app => app.id !== id);
             clearInterval(countdownIntervals[id]);
             delete countdownIntervals[id];
             clearInterval(reminderIntervals[id]);
             delete reminderIntervals[id];
+            
             updateAppointmentList();
-
-            isDataInput = appointments.length > 0; 
+            updateWakeLock();
+            updatePageTitle();
+            isDataInput = appointments.length > 0;
         }
 
+        // Start countdown for appointment
         function startCountdown(appointment) {
             function updateCountdown() {
                 const now = new Date();
@@ -529,53 +2244,148 @@
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
                 const seconds = totalSeconds % 60;
 
-                const totalWidth = 100;
-                const hourWidth = (hours / 24) * totalWidth;
-                const minuteWidth = (minutes / 60) * (totalWidth - hourWidth);
-                const secondWidth = (seconds / 60) * (totalWidth - hourWidth - minuteWidth);
+                // Calculate proportional widths for visual bars
+                const totalDuration = appointment.totalDuration || 24 * 3600 * 1000; // Default to 24 hours
+                const remainingDuration = Math.max(0, timeLeft);
+                const progressPercent = Math.max(0, Math.min(100, (remainingDuration / totalDuration) * 100));
 
-                hoursElement.style.width = `${hourWidth}%`;
-                minutesElement.style.width = `${minuteWidth}%`;
-                secondsElement.style.width = `${secondWidth}%`;
+                // Calculate individual segment widths based on their contribution
+                const hoursPercent = hours > 0 ? (hours / 24) * 100 : 0;
+                const minutesPercent = minutes > 0 ? (minutes / 60) * (100 - hoursPercent) / 2 : 0;
+                const secondsPercent = Math.max(10, 100 - hoursPercent - minutesPercent); // Ensure seconds always visible
 
-                hoursElement.textContent = hours > 0 ? `${hours}H` : '';
-                minutesElement.textContent = minutes > 0 ? `${minutes}M` : '';
-                secondsElement.textContent = `${seconds}S`;
+                // Update segment widths and content
+                hoursElement.style.flex = `${Math.max(0.1, hoursPercent / 100)}`;
+                minutesElement.style.flex = `${Math.max(0.3, minutesPercent / 100 + 0.2)}`;
+                secondsElement.style.flex = `${Math.max(0.3, secondsPercent / 100 + 0.2)}`;
 
-                // Format the countdown text
-                const formattedHours = hours.toString().padStart(2, '0');
-                const formattedMinutes = minutes.toString().padStart(2, '0');
-                const formattedSeconds = seconds.toString().padStart(2, '0');
-                countdownText.textContent = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+                // Enhanced visual countdown segments with proper content
+                hoursElement.innerHTML = `
+                    <div class="countdown-number">${hours}</div>
+                    <div class="countdown-label">Hours</div>
+                `;
+                minutesElement.innerHTML = `
+                    <div class="countdown-number">${minutes}</div>
+                    <div class="countdown-label">Minutes</div>
+                `;
+                secondsElement.innerHTML = `
+                    <div class="countdown-number">${seconds}</div>
+                    <div class="countdown-label">Seconds</div>
+                `;
 
-                // Update reminder indicator
-                const reminderSeconds = appointment.reminderMinutes * 60;
-                const reminderProgress = Math.max(0, Math.min(100, ((reminderSeconds - totalSeconds) / reminderSeconds) * 100));
-                reminderIndicator.style.width = `${reminderProgress}%`;
+                // Hide segments when they're zero (except seconds)
+                hoursElement.style.display = hours > 0 ? 'flex' : 'none';
+                minutesElement.style.display = (minutes > 0 || hours > 0) ? 'flex' : 'none';
 
-                if (totalSeconds <= 60) {
-                    const greenValue = Math.floor((60 - totalSeconds) / 60 * 255);
-                    reminderIndicator.style.backgroundColor = `rgb(243, ${greenValue}, 18)`;
+                // Enhanced countdown text with smart formatting
+                let displayText;
+                if (hours > 0) {
+                    displayText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                } else if (minutes > 0) {
+                    displayText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 } else {
-                    reminderIndicator.style.backgroundColor = 'var(--warning-color)';
+                    displayText = `${seconds}s`;
+                }
+                countdownText.textContent = displayText;
+
+                // Enhanced visual states based on time remaining with attention animations
+                countdownText.className = 'countdown-text';
+                const appointmentElement = document.getElementById(`appointment-${appointment.id}`);
+                
+                // Remove all attention classes first
+                if (appointmentElement) {
+                    appointmentElement.classList.remove('in-countdown', 'shake-attention', 'urgent-attention', 'warning-attention');
+                }
+                
+                if (totalSeconds <= 60) {
+                    countdownText.classList.add('urgent');
+                    if (appointmentElement) {
+                        appointmentElement.style.boxShadow = '0 0 20px rgba(239, 83, 80, 0.4)';
+                        appointmentElement.classList.add('urgent-attention');
+                    }
+                } else if (totalSeconds <= 300) { // 5 minutes
+                    countdownText.classList.add('warning');
+                    if (appointmentElement) {
+                        appointmentElement.style.boxShadow = '0 0 15px rgba(255, 167, 38, 0.3)';
+                        appointmentElement.classList.add('warning-attention');
+                    }
+                } else if (totalSeconds <= reminderSeconds) { // In countdown phase
+                    if (appointmentElement) {
+                        appointmentElement.style.boxShadow = '';
+                        appointmentElement.classList.add('in-countdown');
+                        
+                        // Add gentle shake every 5 seconds during countdown phase
+                        if (!appointment.shakeInterval) {
+                            appointment.shakeInterval = setInterval(() => {
+                                if (appointmentElement) {
+                                    appointmentElement.classList.add('shake-attention');
+                                    setTimeout(() => {
+                                        if (appointmentElement) {
+                                            appointmentElement.classList.remove('shake-attention');
+                                        }
+                                    }, 600);
+                                }
+                            }, 5000);
+                        }
+                    }
+                } else {
+                    if (appointmentElement) {
+                        appointmentElement.style.boxShadow = '';
+                        // Clear shake interval when not in countdown
+                        if (appointment.shakeInterval) {
+                            clearInterval(appointment.shakeInterval);
+                            appointment.shakeInterval = null;
+                        }
+                    }
                 }
 
+                // Enhanced reminder indicator with proper animation
+                const reminderSeconds = appointment.reminderMinutes * 60;
+                const reminderProgress = Math.max(0, Math.min(100, ((reminderSeconds - totalSeconds) / reminderSeconds) * 100));
+                
+                // Update the pseudo-element via CSS custom property
+                reminderIndicator.style.setProperty('--progress', `${reminderProgress}%`);
+                
+                // Apply different colors based on urgency
+                if (totalSeconds <= 60) {
+                    reminderIndicator.style.setProperty('--indicator-color', 'var(--alarm-gradient)');
+                } else if (totalSeconds <= reminderSeconds) {
+                    reminderIndicator.style.setProperty('--indicator-color', 'var(--warning-gradient)');
+                } else {
+                    reminderIndicator.style.setProperty('--indicator-color', 'var(--primary-gradient)');
+                }
+
+                // Trigger reminder
                 if (!appointment.reminderPassed && totalSeconds <= reminderSeconds) {
                     appointment.reminderPassed = true;
                     playWarningBeep();
+                    showMessage(`⏰ Reminder: ${appointment.tag} appointment in ${appointment.reminderMinutes} minutes!`, 'info');
                 }
                 
+                // Appointment time reached
                 if (timeLeft <= 0) {
                     clearInterval(countdownIntervals[appointment.id]);
                     delete countdownIntervals[appointment.id];
                     playAlarmSound();
-                    countdownText.textContent = "00:00:00";
-                    hoursElement.style.width = '0%';
-                    minutesElement.style.width = '0%';
-                    secondsElement.style.width = '0%';
-                    hoursElement.textContent = '';
-                    minutesElement.textContent = '';
-                    secondsElement.textContent = '';
+                    
+                    countdownText.textContent = "TIME!";
+                    countdownText.className = 'countdown-text urgent';
+                    
+                    hoursElement.innerHTML = '<div class="countdown-number">0</div><div class="countdown-label">Hours</div>';
+                    minutesElement.innerHTML = '<div class="countdown-number">0</div><div class="countdown-label">Minutes</div>';
+                    secondsElement.innerHTML = '<div class="countdown-number">0</div><div class="countdown-label">Seconds</div>';
+                    
+                    if (appointmentElement) {
+                        appointmentElement.classList.add('past');
+                        appointmentElement.style.boxShadow = '0 0 25px rgba(239, 83, 80, 0.6)';
+                    }
+                    
+                    showMessage(`🚨 ${appointment.tag} appointment time is NOW!`, 'error');
+                    
+                    // Auto-remove past appointments after 5 minutes
+                    setTimeout(() => {
+                        removeAppointment(appointment.id);
+                    }, 5 * 60 * 1000);
                 }
             }
 
@@ -583,6 +2393,7 @@
             countdownIntervals[appointment.id] = setInterval(updateCountdown, 1000);
         }
 
+        // Set reminder for appointment
         function setReminder(appointment) {
             reminderIntervals[appointment.id] = setInterval(() => {
                 const now = new Date();
@@ -594,57 +2405,177 @@
                     clearInterval(reminderIntervals[appointment.id]);
                     delete reminderIntervals[appointment.id];
                 }
-            }, 60000); 
+            }, 60000);
         }
 
-        function playWarningBeep() {
-            const audio = document.getElementById('warningBeep');
-            audio.play();
+        // Play warning beep with enhanced PWA support
+        async function playWarningBeep() {
+            // Use the audio manager
+            await audioManager.playWarning();
+            
+            // Vibrate on mobile devices
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200]);
+            }
+            
+            // Show notification if app is in background
             if (document.hidden && Notification.permission === 'granted') {
-                new Notification('Appointment Reminder', {
-                    body: 'Your appointment reminder time has been reached!',
-                    icon: 'vta-192.png'
-                });
+                showNotification('Appointment Reminder', 'Your appointment reminder time has been reached!');
             }
         }
 
-        function playAlarmSound() {
-            const audio = document.getElementById('alarmSound');
-            audio.play();
+        // Play alarm sound with enhanced PWA support
+        async function playAlarmSound() {
+            // Use the audio manager
+            await audioManager.playAlarm();
+            
+            // Stronger vibration for appointment time
+            if ('vibrate' in navigator) {
+                navigator.vibrate([500, 200, 500, 200, 500]);
+            }
+            
+            // Show notification if app is in background
             if (document.hidden && Notification.permission === 'granted') {
-                new Notification('Appointment Time', {
-                    body: 'Your appointment time is now!',
-                    icon: 'vta-192.png'
-                });
+                showNotification('Appointment Time', 'Your appointment time is now!');
             }
         }
 
-        window.addEventListener('beforeunload', (event) => {
-            if (isDataInput) {
-                event.preventDefault(); 
-                event.returnValue = ''; 
+        // Enhanced notification function
+        async function showNotification(title, body, options = {}) {
+            const defaultOptions = {
+                body: body,
+                icon: './vta-192.png',
+                badge: './vta-192.png',
+                vibrate: [200, 100, 200],
+                requireInteraction: true,
+                tag: 'appointment-notification',
+                data: {
+                    timestamp: Date.now(),
+                    url: './index.html'
+                },
+                actions: [
+                    {
+                        action: 'view',
+                        title: 'View App',
+                        icon: './vta-192.png'
+                    },
+                    {
+                        action: 'dismiss',
+                        title: 'Dismiss',
+                        icon: './vta-192.png'
+                    }
+                ]
+            };
+
+            const notificationOptions = { ...defaultOptions, ...options };
+
+            try {
+                if (serviceWorkerRegistration && 'showNotification' in serviceWorkerRegistration) {
+                    // Use service worker for persistent notifications
+                    await serviceWorkerRegistration.showNotification(title, notificationOptions);
+                } else if ('Notification' in window && Notification.permission === 'granted') {
+                    // Fallback to regular notification
+                    new Notification(title, notificationOptions);
+                }
+            } catch (error) {
+                console.error('Failed to show notification:', error);
             }
-        });
-
-        const inputFields = document.querySelectorAll('input, select');
-        inputFields.forEach(input => {
-            input.addEventListener('input', () => {
-                isDataInput = true;
-            });
-        });
-
-        // Register service worker for PWA support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('service-worker.js')
-                .then(function(registration) {
-                    // Registration successful
-                }, function(err) {
-                    // Registration failed
-                    console.error('ServiceWorker registration failed: ', err);
-                });
-            });
         }
+
+        // Update page title with next appointment
+        function updatePageTitle() {
+            if (appointments.length === 0) {
+                document.title = 'Visual Appointment Timer';
+                return;
+            }
+
+            const now = new Date();
+            const nextAppointment = appointments.find(app => app.appointmentTime > now);
+            
+            if (nextAppointment) {
+                const timeLeft = nextAppointment.appointmentTime - now;
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                document.title = `${hours}h ${minutes}m - ${nextAppointment.tag}`;
+            }
+        }
+
+        // Update page title every minute
+        setInterval(updatePageTitle, 60000);
+
+        // Cancel edit function
+        function cancelEdit() {
+            editingAppointmentId = null;
+            document.querySelector('.add-button').textContent = 'Add Appointment';
+            
+            // Reset form
+            document.getElementById('descInput').value = '';
+            document.getElementById('appointmentTime').value = '';
+            document.getElementById('tagSelect').value = 'General';
+            document.getElementById('reminder1h').checked = true;
+            updateRadioButtonStyles();
+            setupSmartDefaults();
+            
+            showMessage('Edit cancelled', 'info');
+        }
+
+        // Remove appointment with confirmation
+        function removeAppointment(id) {
+            const appointment = appointments.find(app => app.id === id);
+            if (!appointment) return;
+            
+            if (confirm(`Are you sure you want to remove the ${appointment.tag} appointment?`)) {
+                // Clear intervals
+                clearInterval(countdownIntervals[id]);
+                clearInterval(reminderIntervals[id]);
+                delete countdownIntervals[id];
+                delete reminderIntervals[id];
+                
+                // Clear shake interval if it exists
+                if (appointment.shakeInterval) {
+                    clearInterval(appointment.shakeInterval);
+                    appointment.shakeInterval = null;
+                }
+                
+                // Remove from array
+                appointments = appointments.filter(app => app.id !== id);
+                
+                updateAppointmentList();
+                updateWakeLock();
+                updatePageTitle();
+                
+                hapticFeedback('strong');
+                showSuccessMessage('Appointment removed successfully!');
+            }
+        }
+
+        // Edit appointment function (enhanced version)
+        function editAppointment(id) {
+            const appointment = appointments.find(app => app.id === id);
+            if (appointment) {
+                editingAppointmentId = id;
+                
+                document.getElementById('tagSelect').value = appointment.tag;
+                document.getElementById('descInput').value = appointment.desc || '';
+                document.getElementById('appointmentTime').value = appointment.appointmentTime.toTimeString().slice(0, 5);
+                
+                // Set reminder option
+                const reminderRadio = document.querySelector(`input[name="reminder"][value="${appointment.reminderMinutes}"]`);
+                if (reminderRadio) {
+                    reminderRadio.checked = true;
+                    updateRadioButtonStyles();
+                }
+                
+                document.querySelector('.add-button').textContent = 'Update Appointment';
+                document.getElementById('tagSelect').focus();
+                
+                hapticFeedback('medium');
+                showMessage('Editing appointment - make your changes and click Update', 'info');
+            }
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
 </body>
 </html>

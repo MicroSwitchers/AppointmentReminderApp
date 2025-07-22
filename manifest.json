@@ -1,20 +1,65 @@
 {
-    "name": "Visual Appointment Reminders",
-    "short_name": "AppReminders",
+    "name": "Visual Appointment Timer",
+    "short_name": "VTA",
+    "description": "Professional visual countdown timer for appointments with audio reminders and wake lock support",
     "start_url": "./index.html",
+    "scope": "./",
     "display": "standalone",
-    "background_color": "#1e1e1e",
+    "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+    "orientation": "portrait-primary",
+    "background_color": "#0a0e1a",
     "theme_color": "#61dafb",
+    "categories": ["productivity", "utilities", "business"],
+    "lang": "en-US",
+    "prefer_related_applications": false,
+    "shortcuts": [
+        {
+            "name": "Add Appointment",
+            "short_name": "Add",
+            "description": "Quickly add a new appointment",
+            "url": "./index.html?action=add",
+            "icons": [
+                {
+                    "src": "vta-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ],
     "icons": [
         {
             "src": "vta-192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "vta-512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "vta-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "vta-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "vta-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Visual Appointment Timer main interface"
         }
     ]
 }
