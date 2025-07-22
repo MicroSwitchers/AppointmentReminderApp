@@ -1179,11 +1179,12 @@
         /* Modern Floating Timer Hub - Minimalist Design */
         .timer-hub-container {
             position: fixed;
-            bottom: 20px;
+            top: max(20px, env(safe-area-inset-top, 20px));
             right: 20px;
             z-index: 9999;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             pointer-events: none;
+            will-change: transform;
         }
 
         .timer-hub-container * {
@@ -1209,6 +1210,25 @@
             user-select: none;
             touch-action: manipulation;
             outline: none;
+            will-change: transform, box-shadow;
+        }
+
+        .timer-hub-fab::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-gradient));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .timer-hub-fab:hover::before {
+            opacity: 0.2;
         }
 
         .timer-hub-fab:hover {
@@ -1280,7 +1300,7 @@
         /* Expandable Timer Panel */
         .timer-hub-panel {
             position: absolute;
-            bottom: 70px;
+            top: 70px;
             right: 0;
             width: 320px;
             max-width: calc(100vw - 80px);
@@ -1296,10 +1316,11 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
             opacity: 0;
             visibility: hidden;
-            transform: translateY(20px) scale(0.9);
+            transform: translateY(-20px) scale(0.9);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: bottom right;
+            transform-origin: top right;
             overflow: hidden;
+            will-change: transform, opacity;
         }
 
         .timer-hub-panel.expanded {
@@ -1514,7 +1535,7 @@
         /* Mobile optimizations */
         @media (max-width: 768px) {
             .timer-hub-container {
-                bottom: 16px;
+                top: 16px;
                 right: 16px;
             }
 
@@ -1527,7 +1548,7 @@
             .timer-hub-panel {
                 width: calc(100vw - 32px);
                 max-width: 300px;
-                bottom: 65px;
+                top: 65px;
                 right: 0;
                 max-height: calc(100vh - 100px);
             }
@@ -1563,7 +1584,7 @@
 
         @media (max-width: 480px) {
             .timer-hub-container {
-                bottom: 12px;
+                top: 12px;
                 right: 12px;
             }
 
@@ -1576,7 +1597,7 @@
             .timer-hub-panel {
                 width: calc(100vw - 24px);
                 max-width: 280px;
-                bottom: 60px;
+                top: 60px;
                 right: 0;
                 max-height: calc(100vh - 90px);
             }
@@ -1643,13 +1664,13 @@
         /* Landscape mode adjustments */
         @media (orientation: landscape) and (max-height: 500px) {
             .timer-hub-container {
-                bottom: 8px;
+                top: 8px;
                 right: 8px;
             }
             
             .timer-hub-panel {
                 max-height: calc(100vh - 80px);
-                bottom: 55px;
+                top: 55px;
             }
             
             .timer-hub-list {
@@ -1667,7 +1688,7 @@
         @media (min-width: 1200px) {
             .timer-hub-container {
                 right: 40px;
-                bottom: 40px;
+                top: 40px;
             }
         }
     </style>
@@ -2261,6 +2282,11 @@
             
             // Setup auto-focus and smart defaults
             setupSmartDefaults();
+            
+            // Initialize timer hub
+            setTimeout(() => {
+                initializeTimerHub();
+            }, 100);
         }
 
         // Haptic feedback function
@@ -2299,50 +2325,94 @@
             let isValid = true;
             let message = '';
 
-            switch (field.id) {
-                case 'descInput':
-                    if (field.value.length === 0) {
-                        message = '';
-                    } else if (field.value.length < 2) {
-                        isValid = false;
-                        message = 'Please enter 2 letters';
-                    } else if (!/^[A-Za-z]{2}$/.test(field.value)) {
-                        isValid = false;
-                        message = 'Only letters allowed';
-                    } else {
-                        message = '✓ Perfect!';
-                    }
-                    break;
+            if (field.id === 'descInput') {
+                const value = field.value.trim();
+                if (value.length === 0) {
+                    isValid = false;
+                    message = 'Please enter appointment initials';
+                } else if (value.length !== 2) {
+                    isValid = false;
+                    message = 'Please enter exactly 2 letters';
+                } else if (!/^[A-Za-z]{2}$/.test(value)) {
+                    isValid = false;
+                    message = 'Please use only letters';
+                } else {
+                    isValid = true;
+                    message = '✓ Valid initials';
+                }
+            } else if (field.id === 'appointmentTime') {
+                const value = field.value;
+                if (!value) {
+                    isValid = false;
+                    message = 'Please select an appointment time';
+                } else {
+                    const selectedTime = new Date();
+                    const [hours, minutes] = value.split(':');
+                    selectedTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
                     
-                case 'appointmentTime':
-                    if (field.value) {
-                        const now = new Date();
-                        const selectedTime = new Date(now.toDateString() + ' ' + field.value);
-                        if (selectedTime <= now) {
-                            selectedTime.setDate(selectedTime.getDate() + 1);
-                        }
+                    const now = new Date();
+                    const timeDiff = selectedTime - now;
+                    
+                    if (timeDiff < 0) {
+                        // Check if it's for tomorrow
+                        selectedTime.setDate(selectedTime.getDate() + 1);
+                        const newTimeDiff = selectedTime - now;
                         
-                        const timeDiff = selectedTime - now;
+                        if (newTimeDiff > 0) {
+                            const hours = Math.floor(newTimeDiff / (1000 * 60 * 60));
+                            const minutes = Math.floor((newTimeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                            message = `✓ Appointment in ${hours}h ${minutes}m (tomorrow)`;
+                        } else {
+                            isValid = false;
+                            message = 'Time has already passed';
+                        }
+                    } else {
                         const hours = Math.floor(timeDiff / (1000 * 60 * 60));
                         const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
                         
-                        if (timeDiff < 5 * 60 * 1000) { // Less than 5 minutes
+                        if (hours === 0 && minutes < 5) {
                             isValid = false;
-                            message = 'Too soon! Please select a time at least 5 minutes away';
+                            message = 'Please select a time at least 5 minutes from now';
                         } else {
                             message = `✓ Appointment in ${hours}h ${minutes}m`;
                         }
                     }
-                    break;
+                }
             }
 
-            // Update field styling
-            field.classList.toggle('error', !isValid && field.value);
-            field.classList.toggle('success', isValid && field.value && message.includes('✓'));
-            
-            // Update feedback message
             feedbackElement.textContent = message;
             feedbackElement.className = `input-feedback ${isValid ? 'success' : 'error'}`;
+            
+            // Update field styling
+            if (isValid) {
+                field.classList.remove('error');
+                field.classList.add('success');
+            } else {
+                field.classList.remove('success');
+                field.classList.add('error');
+            }
+
+            return isValid;
+        }
+
+        // Specific validation functions
+        function validateDescInput() {
+            return validateField(document.getElementById('descInput'));
+        }
+
+        function validateTimeInput() {
+            return validateField(document.getElementById('appointmentTime'));
+        }
+
+        // Enhanced URL parameter handling for shortcuts
+        function handleURLParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('type')) {
+                document.getElementById('tagSelect').value = urlParams.get('type');
+            }
+            if (urlParams.get('desc')) {
+                document.getElementById('descInput').value = urlParams.get('desc').substring(0, 2).toUpperCase();
+            }
         }
 
         // Smart auto-focus (no default time)
@@ -2958,8 +3028,11 @@
                     }, 5 * 60 * 1000);
                 }
                 
-                // Update timer hub with current countdown status
-                updateTimerHub();
+                // Update timer hub with current countdown status - throttled for efficiency
+                if (!appointment.lastTimerHubUpdate || Date.now() - appointment.lastTimerHubUpdate > 500) {
+                    appointment.lastTimerHubUpdate = Date.now();
+                    updateTimerHub();
+                }
             }
 
             updateCountdown();
@@ -3118,6 +3191,7 @@
                 appointments = appointments.filter(app => app.id !== id);
                 
                 updateAppointmentList();
+                updateTimerHub(); // Ensure timer hub is updated
                 updateWakeLock();
                 updatePageTitle();
                 
@@ -3151,9 +3225,11 @@
             }
         }
 
-        // Modern Timer Hub Management
+        // Modern Timer Hub Management - Optimized
         let timerHubExpanded = false;
         let timerHubAutoHideTimeout = null;
+        let timerHubUpdateThrottle = null;
+        let lastTimerHubState = null;
 
         function toggleTimerHub() {
             timerHubExpanded = !timerHubExpanded;
@@ -3180,44 +3256,94 @@
         }
 
         function updateTimerHub() {
+            // Throttle updates to prevent excessive DOM manipulation
+            if (timerHubUpdateThrottle) {
+                clearTimeout(timerHubUpdateThrottle);
+            }
+            
+            timerHubUpdateThrottle = setTimeout(() => {
+                performTimerHubUpdate();
+            }, 100); // Update at most every 100ms
+        }
+
+        function performTimerHubUpdate() {
             const hubList = document.getElementById('timerHubList');
             const badge = document.getElementById('timerHubBadge');
             const fab = document.getElementById('timerHubFab');
             
             if (!hubList || !badge || !fab) return;
             
-            // Filter active countdown appointments
+            // Filter active countdown appointments - Fixed logic
+            const now = new Date();
             const activeTimers = appointments.filter(app => {
-                const now = new Date();
-                const timeUntilReminder = app.reminderTime - now;
                 const timeUntilAppointment = app.appointmentTime - now;
-                return timeUntilReminder > 0 || (timeUntilAppointment > 0 && timeUntilAppointment <= app.reminderMinutes * 60 * 1000);
+                
+                // Calculate reminder time properly
+                const reminderTime = new Date(app.appointmentTime.getTime() - (app.reminderMinutes * 60 * 1000));
+                const timeUntilReminder = reminderTime - now;
+                
+                // Show if:
+                // 1. Appointment hasn't started yet (timeUntilAppointment > 0)
+                // AND either:
+                // 2a. Reminder hasn't triggered yet (timeUntilReminder > 0)
+                // 2b. OR we're in countdown phase (reminder triggered but appointment hasn't started)
+                return timeUntilAppointment > 0;
             });
 
-            // Update badge
-            if (activeTimers.length > 0) {
-                badge.textContent = activeTimers.length;
-                badge.classList.add('visible');
-                fab.classList.add('has-timers');
-                
-                // Check for urgent timers
-                const hasUrgent = activeTimers.some(app => {
-                    const now = new Date();
+            // Create state hash to avoid unnecessary updates
+            const currentState = {
+                count: activeTimers.length,
+                hasUrgent: activeTimers.some(app => {
                     const timeUntilAppointment = app.appointmentTime - now;
                     return timeUntilAppointment <= 5 * 60 * 1000 && timeUntilAppointment > 0;
-                });
-                
-                if (hasUrgent) {
-                    badge.classList.add('urgent');
-                } else {
-                    badge.classList.remove('urgent');
-                }
-            } else {
-                badge.classList.remove('visible', 'urgent');
-                fab.classList.remove('has-timers');
-            }
+                }),
+                timers: activeTimers.map(app => {
+                    const timeUntilAppointment = app.appointmentTime - now;
+                    const reminderTime = new Date(app.appointmentTime.getTime() - (app.reminderMinutes * 60 * 1000));
+                    const timeUntilReminder = reminderTime - now;
+                    
+                    return {
+                        id: app.id,
+                        timeLeft: Math.floor(Math.max(timeUntilReminder, timeUntilAppointment) / 1000),
+                        isInCountdown: timeUntilReminder <= 0 && timeUntilAppointment > 0
+                    };
+                })
+            };
 
-            // Update timer list
+            // Only update if state has changed
+            if (lastTimerHubState && JSON.stringify(currentState) === JSON.stringify(lastTimerHubState)) {
+                return;
+            }
+            lastTimerHubState = currentState;
+
+            // Update badge efficiently
+            requestAnimationFrame(() => {
+                if (activeTimers.length > 0) {
+                    badge.textContent = activeTimers.length;
+                    badge.classList.add('visible');
+                    fab.classList.add('has-timers');
+                    
+                    if (currentState.hasUrgent) {
+                        badge.classList.add('urgent');
+                    } else {
+                        badge.classList.remove('urgent');
+                    }
+                } else {
+                    badge.classList.remove('visible', 'urgent');
+                    fab.classList.remove('has-timers');
+                }
+
+                // Update timer list only if panel is expanded
+                if (timerHubExpanded) {
+                    updateTimerHubList(activeTimers);
+                }
+            });
+        }
+
+        function updateTimerHubList(activeTimers) {
+            const hubList = document.getElementById('timerHubList');
+            if (!hubList) return;
+
             if (activeTimers.length === 0) {
                 hubList.innerHTML = `
                     <div class="timer-hub-empty">
@@ -3225,62 +3351,86 @@
                         <p class="timer-hub-empty-text">No active timers</p>
                     </div>
                 `;
-            } else {
-                hubList.innerHTML = activeTimers.map(app => {
-                    const now = new Date();
-                    const timeUntilReminder = app.reminderTime - now;
-                    const timeUntilAppointment = app.appointmentTime - now;
-                    
-                    let timeToShow, status, itemClass;
-                    
-                    if (timeUntilReminder > 0) {
-                        timeToShow = timeUntilReminder;
-                        status = 'Until Reminder';
-                        itemClass = 'countdown';
-                    } else if (timeUntilAppointment > 0) {
-                        timeToShow = timeUntilAppointment;
-                        if (timeUntilAppointment <= 5 * 60 * 1000) {
-                            status = 'Starting Soon!';
-                            itemClass = 'urgent';
-                        } else if (timeUntilAppointment <= 15 * 60 * 1000) {
-                            status = 'Starting Soon';
-                            itemClass = 'warning';
-                        } else {
-                            status = 'Until Start';
-                            itemClass = 'countdown';
-                        }
-                    }
-                    
-                    const timeString = formatCountdownTime(timeToShow);
-                    const typeColor = appointmentColors[app.type] || appointmentColors['General'];
-                    const description = app.description || app.desc || app.tag?.substring(0, 2).toUpperCase() || 'AP';
-                    
-                    return `
-                        <div class="timer-hub-item ${itemClass}" onclick="scrollToAppointment('${app.id}')" tabindex="0" role="button" aria-label="Go to ${description} appointment">
-                            <div class="timer-hub-item-indicator" style="color: ${typeColor};"></div>
-                            <div class="timer-hub-item-content">
-                                <div class="timer-hub-item-title">
-                                    <span style="background: ${typeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">${description}</span>
-                                    <span style="opacity: 0.7;">${app.type || app.tag}</span>
-                                </div>
-                                <div class="timer-hub-item-time">${timeString}</div>
-                                <div class="timer-hub-item-status">${status}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                
-                // Add keyboard navigation
-                const items = hubList.querySelectorAll('.timer-hub-item');
-                items.forEach(item => {
-                    item.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            item.click();
-                        }
-                    });
-                });
+                return;
             }
+
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
+            
+            activeTimers.forEach(app => {
+                const now = new Date();
+                
+                // Calculate reminder time properly
+                const reminderTime = new Date(app.appointmentTime.getTime() - (app.reminderMinutes * 60 * 1000));
+                const timeUntilReminder = reminderTime - now;
+                const timeUntilAppointment = app.appointmentTime - now;
+                
+                let timeToShow, status, itemClass;
+                
+                // Improved logic for displaying countdown status
+                if (timeUntilReminder > 0) {
+                    // Before reminder time
+                    timeToShow = timeUntilReminder;
+                    status = 'Until Reminder';
+                    itemClass = 'countdown';
+                } else if (timeUntilAppointment > 0) {
+                    // After reminder, before appointment (countdown phase)
+                    timeToShow = timeUntilAppointment;
+                    if (timeUntilAppointment <= 60 * 1000) { // 1 minute
+                        status = 'Starting NOW!';
+                        itemClass = 'urgent';
+                    } else if (timeUntilAppointment <= 5 * 60 * 1000) { // 5 minutes
+                        status = 'Starting Soon!';
+                        itemClass = 'urgent';
+                    } else if (timeUntilAppointment <= 15 * 60 * 1000) { // 15 minutes
+                        status = 'Starting Soon';
+                        itemClass = 'warning';
+                    } else {
+                        status = 'Countdown';
+                        itemClass = 'countdown';
+                    }
+                } else {
+                    // Past appointment time (shouldn't happen with our filter, but safety)
+                    return;
+                }
+                
+                const timeString = formatCountdownTime(timeToShow);
+                const typeColor = appointmentColors[app.type] || appointmentColors[app.tag] || appointmentColors['General'];
+                const description = app.desc || app.description || app.tag?.substring(0, 2).toUpperCase() || 'AP';
+                
+                const itemElement = document.createElement('div');
+                itemElement.className = `timer-hub-item ${itemClass}`;
+                itemElement.setAttribute('tabindex', '0');
+                itemElement.setAttribute('role', 'button');
+                itemElement.setAttribute('aria-label', `Go to ${description} appointment`);
+                
+                itemElement.innerHTML = `
+                    <div class="timer-hub-item-indicator" style="color: ${typeColor};"></div>
+                    <div class="timer-hub-item-content">
+                        <div class="timer-hub-item-title">
+                            <span style="background: ${typeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">${description}</span>
+                            <span style="opacity: 0.7;">${app.type || app.tag}</span>
+                        </div>
+                        <div class="timer-hub-item-time">${timeString}</div>
+                        <div class="timer-hub-item-status">${status}</div>
+                    </div>
+                `;
+                
+                // Add event listeners efficiently
+                itemElement.addEventListener('click', () => scrollToAppointment(app.id), { passive: true });
+                itemElement.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        scrollToAppointment(app.id);
+                    }
+                }, { passive: false });
+                
+                fragment.appendChild(itemElement);
+            });
+
+            // Replace content in one operation
+            hubList.innerHTML = '';
+            hubList.appendChild(fragment);
         }
 
         function scrollToAppointment(appointmentId) {
@@ -3336,26 +3486,67 @@
             }
         }
 
-        // Auto-hide timer hub when clicking outside
-        document.addEventListener('click', (e) => {
-            const timerHub = document.getElementById('timerHubContainer');
-            if (timerHubExpanded && timerHub && !timerHub.contains(e.target)) {
-                toggleTimerHub();
+        // Auto-hide timer hub when clicking outside - Optimized
+        let clickOutsideHandler = null;
+
+        function setupTimerHubClickOutside() {
+            if (clickOutsideHandler) {
+                document.removeEventListener('click', clickOutsideHandler);
             }
-        });
+            
+            clickOutsideHandler = (e) => {
+                const timerHub = document.getElementById('timerHubContainer');
+                if (timerHubExpanded && timerHub && !timerHub.contains(e.target)) {
+                    toggleTimerHub();
+                }
+            };
+            
+            document.addEventListener('click', clickOutsideHandler, { passive: true });
+        }
+
+        // Optimized initialization
+        function initializeTimerHub() {
+            updateTimerHub();
+            setupTimerHubClickOutside();
+            
+            // Setup intersection observer for efficiency when panel is off-screen
+            if ('IntersectionObserver' in window) {
+                const timerHubContainer = document.getElementById('timerHubContainer');
+                if (timerHubContainer) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                // Timer hub is visible, enable full updates
+                                if (timerHubExpanded) {
+                                    updateTimerHubList(
+                                        appointments.filter(app => {
+                                            const now = new Date();
+                                            const timeUntilReminder = app.reminderTime - now;
+                                            const timeUntilAppointment = app.appointmentTime - now;
+                                            return timeUntilReminder > 0 || (timeUntilAppointment > 0 && timeUntilAppointment <= app.reminderMinutes * 60 * 1000);
+                                        })
+                                    );
+                                }
+                            }
+                        });
+                    }, { threshold: 0.1 });
+                    
+                    observer.observe(timerHubContainer);
+                }
+            }
+        }
 
         // Initialize the timer hub on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize timer hub
-            updateTimerHub();
-            
-            // Add test data if no appointments exist (for demo purposes)
-            if (appointments.length === 0) {
-                // This will be removed once user adds real appointments
-                setTimeout(() => {
+            // Initialize timer hub with delay to ensure DOM is ready
+            setTimeout(() => {
+                initializeTimerHub();
+                
+                // Add demo state if no appointments exist
+                if (appointments.length === 0) {
                     const badge = document.getElementById('timerHubBadge');
                     const fab = document.getElementById('timerHubFab');
-                    if (badge && fab && appointments.length === 0) {
+                    if (badge && fab) {
                         // Show a demo state briefly
                         badge.textContent = '?';
                         badge.classList.add('visible');
@@ -3369,8 +3560,8 @@
                             }
                         }, 3000);
                     }
-                }, 1000);
-            }
+                }
+            }, 100);
         });
 
         // Initialize the app when the page loads
@@ -3378,4 +3569,3 @@
     </script>
 </body>
 </html>
-`
