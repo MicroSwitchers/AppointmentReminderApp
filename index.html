@@ -1136,6 +1136,32 @@
             animation: focusGlow 3s ease-in-out infinite;
             position: relative;
             z-index: 10;
+            background: radial-gradient(ellipse at center, rgba(255, 193, 7, 0.15) 0%, rgba(255, 152, 0, 0.1) 40%, transparent 80%);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .appointment.in-countdown::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(ellipse at center, rgba(255, 193, 7, 0.2) 0%, rgba(255, 152, 0, 0.1) 50%, transparent 80%);
+            border-radius: var(--border-radius-xl);
+            z-index: -1;
+            animation: countdownGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes countdownGlow {
+            0%, 100% { 
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: scale(1.02);
+            }
         }
 
         .appointment.shake-attention {
@@ -1149,10 +1175,525 @@
         .appointment.warning-attention {
             animation: focusGlow 2s ease-in-out infinite, pulseAttention 3s ease-in-out infinite;
         }
+
+        /* Modern Floating Timer Hub - Minimalist Design */
+        .timer-hub-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            pointer-events: none;
+        }
+
+        .timer-hub-container * {
+            pointer-events: auto;
+        }
+
+        /* Floating Action Button (FAB) */
+        .timer-hub-fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            border: none;
+            box-shadow: 0 6px 20px rgba(97, 218, 251, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            font-size: 24px;
+            user-select: none;
+            touch-action: manipulation;
+            outline: none;
+        }
+
+        .timer-hub-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(97, 218, 251, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .timer-hub-fab:active {
+            transform: scale(0.95);
+        }
+
+        .timer-hub-fab.has-timers {
+            animation: fabPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes fabPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 6px 20px rgba(97, 218, 251, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 8px 25px rgba(97, 218, 251, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        /* Badge for timer count */
+        .timer-hub-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ef5350;
+            color: white;
+            border-radius: 50%;
+            min-width: 22px;
+            height: 22px;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(239, 83, 80, 0.4);
+            border: 2px solid white;
+            padding: 0 4px;
+        }
+
+        .timer-hub-badge.visible {
+            transform: scale(1);
+        }
+
+        .timer-hub-badge.urgent {
+            animation: badgeUrgent 1s ease-in-out infinite;
+            background: #d32f2f;
+        }
+
+        @keyframes badgeUrgent {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(239, 83, 80, 0.4);
+            }
+            50% { 
+                transform: scale(1.15);
+                box-shadow: 0 4px 12px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        /* Expandable Timer Panel */
+        .timer-hub-panel {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            width: 320px;
+            max-width: calc(100vw - 80px);
+            max-height: calc(100vh - 140px);
+            background: var(--glass-background);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid var(--glass-light);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.9);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom right;
+            overflow: hidden;
+        }
+
+        .timer-hub-panel.expanded {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .timer-hub-panel-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid var(--glass-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .timer-hub-panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .timer-hub-panel-title::before {
+            content: "⏱️";
+            font-size: 18px;
+        }
+
+        .timer-hub-close {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: var(--muted-text-color);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            line-height: 1;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timer-hub-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            transform: scale(1.1);
+        }
+
+        .timer-hub-list {
+            max-height: calc(100vh - 220px);
+            overflow-y: auto;
+            padding: 8px 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(97, 218, 251, 0.3) transparent;
+        }
+
+        .timer-hub-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .timer-hub-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .timer-hub-list::-webkit-scrollbar-thumb {
+            background: rgba(97, 218, 251, 0.3);
+            border-radius: 2px;
+        }
+
+        .timer-hub-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(97, 218, 251, 0.5);
+        }
+
+        /* Individual Timer Items */
+        .timer-hub-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .timer-hub-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(-2px);
+        }
+
+        .timer-hub-item:active {
+            transform: translateX(-2px) scale(0.98);
+        }
+
+        .timer-hub-item:last-child {
+            border-bottom: none;
+        }
+
+        .timer-hub-item-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: relative;
+            border: 2px solid currentColor;
+            transition: all 0.2s ease;
+        }
+
+        .timer-hub-item-indicator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .timer-hub-item.urgent .timer-hub-item-indicator::after {
+            opacity: 1;
+            animation: indicatorPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes indicatorPulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                opacity: 0.5; 
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+        }
+
+        .timer-hub-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .timer-hub-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0 0 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .timer-hub-item-time {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            letter-spacing: 0.5px;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .timer-hub-item-status {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin: 4px 0 0 0;
+            opacity: 0.7;
+        }
+
+        /* Status-based styling */
+        .timer-hub-item.countdown {
+            color: var(--primary-color);
+        }
+
+        .timer-hub-item.warning {
+            color: #ffa726;
+        }
+
+        .timer-hub-item.urgent {
+            color: #ef5350;
+        }
+
+        /* Empty state */
+        .timer-hub-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--muted-text-color);
+        }
+
+        .timer-hub-empty-icon {
+            font-size: 48px;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+
+        .timer-hub-empty-text {
+            font-size: 14px;
+            margin: 0;
+            opacity: 0.7;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .timer-hub-container {
+                bottom: 16px;
+                right: 16px;
+            }
+
+            .timer-hub-fab {
+                width: 52px;
+                height: 52px;
+                font-size: 22px;
+            }
+
+            .timer-hub-panel {
+                width: calc(100vw - 32px);
+                max-width: 300px;
+                bottom: 65px;
+                right: 0;
+                max-height: calc(100vh - 100px);
+            }
+
+            .timer-hub-panel-header {
+                padding: 12px 16px 8px;
+            }
+
+            .timer-hub-panel-title {
+                font-size: 14px;
+            }
+
+            .timer-hub-item {
+                padding: 12px 16px;
+            }
+
+            .timer-hub-item-time {
+                font-size: 18px;
+            }
+
+            .timer-hub-badge {
+                top: -4px;
+                right: -4px;
+                min-width: 20px;
+                height: 20px;
+                font-size: 10px;
+            }
+
+            .timer-hub-list {
+                max-height: calc(100vh - 160px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .timer-hub-container {
+                bottom: 12px;
+                right: 12px;
+            }
+
+            .timer-hub-fab {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            .timer-hub-panel {
+                width: calc(100vw - 24px);
+                max-width: 280px;
+                bottom: 60px;
+                right: 0;
+                max-height: calc(100vh - 90px);
+            }
+
+            .timer-hub-panel-title {
+                font-size: 13px;
+            }
+
+            .timer-hub-item-time {
+                font-size: 16px;
+            }
+
+            .timer-hub-list {
+                max-height: calc(100vh - 150px);
+            }
+        }
+
+        /* Focus and accessibility */
+        .timer-hub-fab:focus-visible,
+        .timer-hub-close:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .timer-hub-item:focus-visible {
+            outline: 1px solid var(--primary-color);
+            outline-offset: -1px;
+            background: rgba(97, 218, 251, 0.1);
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .timer-hub-fab {
+                border: 2px solid var(--text-color);
+            }
+            
+            .timer-hub-panel {
+                border: 2px solid var(--text-color);
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .timer-hub-fab,
+            .timer-hub-panel,
+            .timer-hub-item,
+            .timer-hub-badge {
+                transition: none;
+                animation: none;
+            }
+        }
+
+        /* Ensure widget doesn't interfere with main content */
+        @media (max-height: 600px) {
+            .timer-hub-panel {
+                max-height: calc(100vh - 120px);
+            }
+            
+            .timer-hub-list {
+                max-height: calc(100vh - 200px);
+            }
+        }
+
+        /* Landscape mode adjustments */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .timer-hub-container {
+                bottom: 8px;
+                right: 8px;
+            }
+            
+            .timer-hub-panel {
+                max-height: calc(100vh - 80px);
+                bottom: 55px;
+            }
+            
+            .timer-hub-list {
+                max-height: calc(100vh - 160px);
+            }
+        }
+
+        /* Ensure FAB doesn't interfere with scrollbars */
+        .timer-hub-container {
+            margin-right: 0;
+            margin-bottom: 0;
+        }
+
+        /* Add some breathing room around the FAB */
+        @media (min-width: 1200px) {
+            .timer-hub-container {
+                right: 40px;
+                bottom: 40px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
+        <!-- Modern Timer Hub -->
+        <div id="timerHubContainer" class="timer-hub-container">
+            <!-- Floating Action Button -->
+            <button id="timerHubFab" class="timer-hub-fab" onclick="toggleTimerHub()" aria-label="Toggle active timers" title="View active timers">
+                ⏱️
+                <span id="timerHubBadge" class="timer-hub-badge">0</span>
+            </button>
+            
+            <!-- Expandable Panel -->
+            <div id="timerHubPanel" class="timer-hub-panel">
+                <div class="timer-hub-panel-header">
+                    <h3 class="timer-hub-panel-title">Active Timers</h3>
+                    <button class="timer-hub-close" onclick="toggleTimerHub()" aria-label="Close timer panel">×</button>
+                </div>
+                <div id="timerHubList" class="timer-hub-list">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+            </div>
+        </div>
+
         <div class="main-container">
             <div class="app-header">
                 <img src="vta-512.png" alt="App Icon" class="app-icon">
@@ -1819,11 +2360,22 @@
             const desc = document.getElementById('descInput').value.toUpperCase().trim();
             const time = document.getElementById('appointmentTime').value;
 
+            // Helper function to reset button state
+            function resetButtonState() {
+                const button = document.querySelector('.add-button');
+                if (button) {
+                    button.classList.remove('loading');
+                    button.disabled = false;
+                    button.style.pointerEvents = 'auto';
+                }
+            }
+
             // Validate inputs
             if (!time) {
                 showErrorMessage('Please set a valid appointment time.');
                 document.getElementById('appointmentTime').focus();
                 hapticFeedback('strong');
+                resetButtonState();
                 return;
             }
 
@@ -1831,6 +2383,7 @@
                 showErrorMessage('Appointment initials must be exactly 2 letters.');
                 document.getElementById('descInput').focus();
                 hapticFeedback('strong');
+                resetButtonState();
                 return;
             }
 
@@ -1838,6 +2391,7 @@
                 showErrorMessage('Appointment initials can only contain letters.');
                 document.getElementById('descInput').focus();
                 hapticFeedback('strong');
+                resetButtonState();
                 return;
             }
 
@@ -1845,32 +2399,32 @@
             addButton.classList.add('loading');
             addButton.disabled = true;
 
-            // Haptic feedback for successful action
-            hapticFeedback('medium');
+            try {
+                // Haptic feedback for successful action
+                hapticFeedback('medium');
 
-            let reminderMinutes = 60;
-            const reminderOptions = document.querySelectorAll('input[name="reminder"]');
-            for (const option of reminderOptions) {
-                if (option.checked) {
-                    reminderMinutes = parseInt(option.value);
-                    break;
+                let reminderMinutes = 60;
+                const reminderOptions = document.querySelectorAll('input[name="reminder"]');
+                for (const option of reminderOptions) {
+                    if (option.checked) {
+                        reminderMinutes = parseInt(option.value);
+                        break;
+                    }
                 }
-            }
 
-            const now = new Date();
-            const appointmentTime = new Date(now.toDateString() + ' ' + time);
-            if (appointmentTime <= now) {
-                appointmentTime.setDate(appointmentTime.getDate() + 1); 
-            }
-            
-            // Check if time is too soon
-            const timeDiff = appointmentTime - now;
-            if (timeDiff < 5 * 60 * 1000) { // Less than 5 minutes
-                showErrorMessage('Please select a time at least 5 minutes from now.');
-                addButton.classList.remove('loading');
-                addButton.disabled = false;
-                return;
-            }
+                const now = new Date();
+                const appointmentTime = new Date(now.toDateString() + ' ' + time);
+                if (appointmentTime <= now) {
+                    appointmentTime.setDate(appointmentTime.getDate() + 1); 
+                }
+                
+                // Check if time is too soon
+                const timeDiff = appointmentTime - now;
+                if (timeDiff < 5 * 60 * 1000) { // Less than 5 minutes
+                    showErrorMessage('Please select a time at least 5 minutes from now.');
+                    resetButtonState();
+                    return;
+                }
 
             const totalDuration = appointmentTime - now;
 
@@ -1912,20 +2466,23 @@
             updateWakeLock();
             updatePageTitle();
             
+            // Clear loading state immediately
+            resetButtonState();
+            
             // Reset form with enhanced UX
             setTimeout(() => {
                 document.getElementById('descInput').value = '';
                 document.getElementById('appointmentTime').value = '';
-                
-                addButton.classList.remove('loading');
-                addButton.disabled = false;
-                
-                if (!editingAppointmentId) {
-                    document.getElementById('tagSelect').focus();
-                }
-            }, 300);
+                document.getElementById('tagSelect').focus();
+            }, 100);
 
             isDataInput = false; // Reset form state
+            
+            } catch (error) {
+                console.error('Error adding appointment:', error);
+                showErrorMessage('Failed to add appointment. Please try again.');
+                resetButtonState();
+            }
         }
 
         function handleServiceWorkerMessage(event) {
@@ -2096,6 +2653,7 @@
             
             if (appointments.length === 0) {
                 list.innerHTML = '';
+                updateTimerHub(); // Update timer hub when no appointments
                 return;
             }
             
@@ -2171,6 +2729,9 @@
                     setReminder(app);
                 }
             });
+            
+            // Update timer hub whenever appointment list changes
+            updateTimerHub();
         }
 
         // Edit appointment
@@ -2232,6 +2793,9 @@
                 const secondsElement = document.getElementById(`seconds-${appointment.id}`);
                 const countdownText = document.getElementById(`countdown-text-${appointment.id}`);
                 const reminderIndicator = document.getElementById(`reminder-indicator-${appointment.id}`);
+
+                // Calculate reminder seconds early for use throughout the function
+                const reminderSeconds = appointment.reminderMinutes * 60;
 
                 if (!hoursElement || !minutesElement || !secondsElement || !countdownText || !reminderIndicator) {
                     clearInterval(countdownIntervals[appointment.id]);
@@ -2340,7 +2904,6 @@
                 }
 
                 // Enhanced reminder indicator with proper animation
-                const reminderSeconds = appointment.reminderMinutes * 60;
                 const reminderProgress = Math.max(0, Math.min(100, ((reminderSeconds - totalSeconds) / reminderSeconds) * 100));
                 
                 // Update the pseudo-element via CSS custom property
@@ -2366,6 +2929,13 @@
                 if (timeLeft <= 0) {
                     clearInterval(countdownIntervals[appointment.id]);
                     delete countdownIntervals[appointment.id];
+                    
+                    // Clear shake interval when appointment ends
+                    if (appointment.shakeInterval) {
+                        clearInterval(appointment.shakeInterval);
+                        appointment.shakeInterval = null;
+                    }
+                    
                     playAlarmSound();
                     
                     countdownText.textContent = "TIME!";
@@ -2387,6 +2957,9 @@
                         removeAppointment(appointment.id);
                     }, 5 * 60 * 1000);
                 }
+                
+                // Update timer hub with current countdown status
+                updateTimerHub();
             }
 
             updateCountdown();
@@ -2514,7 +3087,11 @@
             document.getElementById('tagSelect').value = 'General';
             document.getElementById('reminder1h').checked = true;
             updateRadioButtonStyles();
-            setupSmartDefaults();
+            
+            // Focus on first input
+            setTimeout(() => {
+                document.getElementById('tagSelect').focus();
+            }, 100);
             
             showMessage('Edit cancelled', 'info');
         }
@@ -2573,6 +3150,228 @@
                 showMessage('Editing appointment - make your changes and click Update', 'info');
             }
         }
+
+        // Modern Timer Hub Management
+        let timerHubExpanded = false;
+        let timerHubAutoHideTimeout = null;
+
+        function toggleTimerHub() {
+            timerHubExpanded = !timerHubExpanded;
+            const panel = document.getElementById('timerHubPanel');
+            const fab = document.getElementById('timerHubFab');
+            
+            if (timerHubExpanded) {
+                panel.classList.add('expanded');
+                fab.setAttribute('aria-expanded', 'true');
+                // Auto-hide after 10 seconds if no interaction
+                timerHubAutoHideTimeout = setTimeout(() => {
+                    if (timerHubExpanded) {
+                        toggleTimerHub();
+                    }
+                }, 10000);
+                
+                // Add haptic feedback
+                triggerHapticFeedback();
+            } else {
+                panel.classList.remove('expanded');
+                fab.setAttribute('aria-expanded', 'false');
+                clearTimeout(timerHubAutoHideTimeout);
+            }
+        }
+
+        function updateTimerHub() {
+            const hubList = document.getElementById('timerHubList');
+            const badge = document.getElementById('timerHubBadge');
+            const fab = document.getElementById('timerHubFab');
+            
+            if (!hubList || !badge || !fab) return;
+            
+            // Filter active countdown appointments
+            const activeTimers = appointments.filter(app => {
+                const now = new Date();
+                const timeUntilReminder = app.reminderTime - now;
+                const timeUntilAppointment = app.appointmentTime - now;
+                return timeUntilReminder > 0 || (timeUntilAppointment > 0 && timeUntilAppointment <= app.reminderMinutes * 60 * 1000);
+            });
+
+            // Update badge
+            if (activeTimers.length > 0) {
+                badge.textContent = activeTimers.length;
+                badge.classList.add('visible');
+                fab.classList.add('has-timers');
+                
+                // Check for urgent timers
+                const hasUrgent = activeTimers.some(app => {
+                    const now = new Date();
+                    const timeUntilAppointment = app.appointmentTime - now;
+                    return timeUntilAppointment <= 5 * 60 * 1000 && timeUntilAppointment > 0;
+                });
+                
+                if (hasUrgent) {
+                    badge.classList.add('urgent');
+                } else {
+                    badge.classList.remove('urgent');
+                }
+            } else {
+                badge.classList.remove('visible', 'urgent');
+                fab.classList.remove('has-timers');
+            }
+
+            // Update timer list
+            if (activeTimers.length === 0) {
+                hubList.innerHTML = `
+                    <div class="timer-hub-empty">
+                        <div class="timer-hub-empty-icon">⏰</div>
+                        <p class="timer-hub-empty-text">No active timers</p>
+                    </div>
+                `;
+            } else {
+                hubList.innerHTML = activeTimers.map(app => {
+                    const now = new Date();
+                    const timeUntilReminder = app.reminderTime - now;
+                    const timeUntilAppointment = app.appointmentTime - now;
+                    
+                    let timeToShow, status, itemClass;
+                    
+                    if (timeUntilReminder > 0) {
+                        timeToShow = timeUntilReminder;
+                        status = 'Until Reminder';
+                        itemClass = 'countdown';
+                    } else if (timeUntilAppointment > 0) {
+                        timeToShow = timeUntilAppointment;
+                        if (timeUntilAppointment <= 5 * 60 * 1000) {
+                            status = 'Starting Soon!';
+                            itemClass = 'urgent';
+                        } else if (timeUntilAppointment <= 15 * 60 * 1000) {
+                            status = 'Starting Soon';
+                            itemClass = 'warning';
+                        } else {
+                            status = 'Until Start';
+                            itemClass = 'countdown';
+                        }
+                    }
+                    
+                    const timeString = formatCountdownTime(timeToShow);
+                    const typeColor = appointmentColors[app.type] || appointmentColors['General'];
+                    const description = app.description || app.desc || app.tag?.substring(0, 2).toUpperCase() || 'AP';
+                    
+                    return `
+                        <div class="timer-hub-item ${itemClass}" onclick="scrollToAppointment('${app.id}')" tabindex="0" role="button" aria-label="Go to ${description} appointment">
+                            <div class="timer-hub-item-indicator" style="color: ${typeColor};"></div>
+                            <div class="timer-hub-item-content">
+                                <div class="timer-hub-item-title">
+                                    <span style="background: ${typeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">${description}</span>
+                                    <span style="opacity: 0.7;">${app.type || app.tag}</span>
+                                </div>
+                                <div class="timer-hub-item-time">${timeString}</div>
+                                <div class="timer-hub-item-status">${status}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Add keyboard navigation
+                const items = hubList.querySelectorAll('.timer-hub-item');
+                items.forEach(item => {
+                    item.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            item.click();
+                        }
+                    });
+                });
+            }
+        }
+
+        function scrollToAppointment(appointmentId) {
+            const appointmentElement = document.getElementById(`appointment-${appointmentId}`) || 
+                                      document.querySelector(`[data-appointment-id="${appointmentId}"]`);
+            if (appointmentElement) {
+                // Close timer hub
+                if (timerHubExpanded) {
+                    toggleTimerHub();
+                }
+                
+                // Smooth scroll to appointment
+                appointmentElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                // Add temporary highlight
+                appointmentElement.classList.add('shake-attention');
+                setTimeout(() => {
+                    appointmentElement.classList.remove('shake-attention');
+                }, 600);
+                
+                // Haptic feedback
+                triggerHapticFeedback();
+            }
+        }
+
+        function formatCountdownTime(milliseconds) {
+            if (milliseconds <= 0) return '00:00:00';
+            
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            if (hours > 0) {
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        // Enhanced haptic feedback
+        function triggerHapticFeedback(intensity = 'light') {
+            if ('vibrate' in navigator) {
+                const patterns = {
+                    light: [10],
+                    medium: [20],
+                    heavy: [30]
+                };
+                navigator.vibrate(patterns[intensity] || patterns.light);
+            }
+        }
+
+        // Auto-hide timer hub when clicking outside
+        document.addEventListener('click', (e) => {
+            const timerHub = document.getElementById('timerHubContainer');
+            if (timerHubExpanded && timerHub && !timerHub.contains(e.target)) {
+                toggleTimerHub();
+            }
+        });
+
+        // Initialize the timer hub on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize timer hub
+            updateTimerHub();
+            
+            // Add test data if no appointments exist (for demo purposes)
+            if (appointments.length === 0) {
+                // This will be removed once user adds real appointments
+                setTimeout(() => {
+                    const badge = document.getElementById('timerHubBadge');
+                    const fab = document.getElementById('timerHubFab');
+                    if (badge && fab && appointments.length === 0) {
+                        // Show a demo state briefly
+                        badge.textContent = '?';
+                        badge.classList.add('visible');
+                        fab.setAttribute('title', 'Timer hub ready - Add appointments to see active timers');
+                        
+                        // Remove demo state after 3 seconds
+                        setTimeout(() => {
+                            if (appointments.length === 0) {
+                                badge.classList.remove('visible');
+                                fab.setAttribute('title', 'View active timers');
+                            }
+                        }, 3000);
+                    }
+                }, 1000);
+            }
+        });
 
         // Initialize the app when the page loads
         document.addEventListener('DOMContentLoaded', initializeApp);
