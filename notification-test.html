@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+        button {
+            background: #61dafb;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #4fa8c5;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #333;
+        }
+        .success { background: #0f5132; }
+        .error { background: #842029; }
+    </style>
+</head>
+<body>
+    <h1>📱 Enhanced Notification System Test</h1>
+    
+    <div class="test-section">
+        <h2>🔔 Notification Permission</h2>
+        <p>Status: <span id="permissionStatus">Checking...</span></p>
+        <button onclick="requestPermission()">Request Permission</button>
+    </div>
+
+    <div class="test-section">
+        <h2>⏰ Test Notifications</h2>
+        <button onclick="testReminderNotification()">Test Reminder (10s)</button>
+        <button onclick="testWarningNotification()">Test 5-Min Warning (15s)</button>
+        <button onclick="testCountdownNotification()">Test Countdown Update</button>
+        <button onclick="testAlarmNotification()">Test Alarm (20s)</button>
+        <div id="testStatus" class="status">Ready to test notifications...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Platform Detection</h2>
+        <div id="platformInfo"></div>
+    </div>
+
+    <script>
+        // Check initial permission status
+        function updatePermissionStatus() {
+            const status = document.getElementById('permissionStatus');
+            if ('Notification' in window) {
+                status.textContent = Notification.permission;
+                status.className = Notification.permission === 'granted' ? 'success' : 
+                                 Notification.permission === 'denied' ? 'error' : '';
+            } else {
+                status.textContent = 'Not supported';
+                status.className = 'error';
+            }
+        }
+
+        // Request notification permission
+        async function requestPermission() {
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                updatePermissionStatus();
+                updateTestStatus(`Permission ${permission}`, permission === 'granted' ? 'success' : 'error');
+            }
+        }
+
+        // Detect platform
+        function detectPlatform() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+            
+            document.getElementById('platformInfo').innerHTML = `
+                <p><strong>Platform:</strong> ${navigator.platform}</p>
+                <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+                <p><strong>iOS:</strong> ${isIOS ? '✅' : '❌'}</p>
+                <p><strong>Android:</strong> ${isAndroid ? '✅' : '❌'}</p>
+                <p><strong>Mobile:</strong> ${isMobile ? '✅' : '❌'}</p>
+                <p><strong>Touch Points:</strong> ${navigator.maxTouchPoints || 0}</p>
+                <p><strong>Service Worker:</strong> ${'serviceWorker' in navigator ? '✅' : '❌'}</p>
+            `;
+        }
+
+        // Update test status
+        function updateTestStatus(message, type = '') {
+            const status = document.getElementById('testStatus');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        // Test reminder notification (scheduled for 10 seconds)
+        function testReminderNotification() {
+            if (Notification.permission !== 'granted') {
+                updateTestStatus('Please grant notification permission first', 'error');
+                return;
+            }
+
+            updateTestStatus('Reminder notification scheduled for 10 seconds...', 'success');
+            
+            setTimeout(() => {
+                const notification = new Notification('⏰ Test Reminder', {
+                    body: '1 hour until your Test appointment at 3:00 PM',
+                    icon: './vta-192.png',
+                    badge: './vta-192.png',
+                    requireInteraction: true,
+                    vibrate: [200, 100, 200]
+                });
+
+                notification.onclick = () => {
+                    updateTestStatus('Reminder notification clicked!', 'success');
+                    notification.close();
+                };
+            }, 10000);
+        }
+
+        // Test 5-minute warning (scheduled for 15 seconds)
+        function testWarningNotification() {
+            if (Notification.permission !== 'granted') {
+                updateTestStatus('Please grant notification permission first', 'error');
+                return;
+            }
+
+            updateTestStatus('5-minute warning scheduled for 15 seconds...', 'success');
+            
+            setTimeout(() => {
+                const notification = new Notification('🚨 Test Soon!', {
+                    body: '5 minutes until your Test appointment at 3:00 PM',
+                    icon: './vta-192.png',
+                    badge: './vta-192.png',
+                    requireInteraction: true,
+                    vibrate: [300, 150, 300, 150, 300]
+                });
+
+                notification.onclick = () => {
+                    updateTestStatus('Warning notification clicked!', 'success');
+                    notification.close();
+                };
+            }, 15000);
+        }
+
+        // Test countdown notification (immediate)
+        function testCountdownNotification() {
+            if (Notification.permission !== 'granted') {
+                updateTestStatus('Please grant notification permission first', 'error');
+                return;
+            }
+
+            const notification = new Notification('⏱️ Test Countdown', {
+                body: '25m 30s remaining until Test appointment at 3:00 PM',
+                icon: './vta-192.png',
+                badge: './vta-192.png',
+                tag: 'countdown-test',
+                renotify: true,
+                requireInteraction: false,
+                silent: true
+            });
+
+            notification.onclick = () => {
+                updateTestStatus('Countdown notification clicked!', 'success');
+                notification.close();
+            };
+
+            updateTestStatus('Countdown notification sent!', 'success');
+        }
+
+        // Test alarm notification (scheduled for 20 seconds)
+        function testAlarmNotification() {
+            if (Notification.permission !== 'granted') {
+                updateTestStatus('Please grant notification permission first', 'error');
+                return;
+            }
+
+            updateTestStatus('Alarm notification scheduled for 20 seconds...', 'success');
+            
+            setTimeout(() => {
+                const notification = new Notification('🚨 Test TIME!', {
+                    body: 'Your Test appointment is starting NOW!',
+                    icon: './vta-192.png',
+                    badge: './vta-192.png',
+                    requireInteraction: true,
+                    vibrate: [500, 200, 500, 200, 500]
+                });
+
+                notification.onclick = () => {
+                    updateTestStatus('Alarm notification clicked!', 'success');
+                    notification.close();
+                };
+            }, 20000);
+        }
+
+        // Initialize
+        updatePermissionStatus();
+        detectPlatform();
+    </script>
+</body>
+</html>

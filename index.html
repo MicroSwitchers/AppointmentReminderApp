@@ -511,6 +511,7 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.3);
         }
 
         .add-button::before {
@@ -668,6 +669,7 @@
             font-size: 1.3em;
             line-height: 1;
             margin-bottom: 2px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 8px rgba(0, 0, 0, 0.4);
         }
 
         .countdown-label {
@@ -675,6 +677,30 @@
             opacity: 0.8;
             text-transform: uppercase;
             letter-spacing: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Responsive countdown labels based on segment width */
+        .countdown-segment {
+            position: relative;
+        }
+
+        .countdown-segment[data-width="narrow"] .countdown-label {
+            font-size: 0.6em;
+            letter-spacing: 0.5px;
+        }
+
+        .countdown-segment[data-width="very-narrow"] .countdown-label {
+            font-size: 0.55em;
+            letter-spacing: 0px;
+        }
+
+        /* Hide labels entirely on very small segments */
+        .countdown-segment[data-width="tiny"] .countdown-label {
+            display: none;
         }
 
         .countdown-segment::after {
@@ -874,6 +900,7 @@
             box-shadow: var(--shadow-sm);
             position: relative;
             overflow: hidden;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3);
         }
 
         .appointment button::before {
@@ -969,6 +996,7 @@
             transition: all var(--transition-duration) ease;
             margin-left: 15px;
             box-shadow: var(--shadow-md);
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3);
         }
 
         .install-button:hover {
@@ -991,6 +1019,7 @@
             z-index: 9999;
             box-shadow: var(--shadow-lg);
             animation: slideDown 0.3s ease-out;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3);
         }
 
         @keyframes slideDown {
@@ -1211,6 +1240,7 @@
             touch-action: manipulation;
             outline: none;
             will-change: transform, box-shadow;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.3);
         }
 
         .timer-hub-fab::before {
@@ -1368,6 +1398,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
         }
 
         .timer-hub-close:hover {
@@ -1464,6 +1495,12 @@
                 opacity: 0.5; 
                 transform: translate(-50%, -50%) scale(1.5);
             }
+        }
+
+        @keyframes highlightPulse {
+            0% { box-shadow: 0 2px 8px rgba(97, 218, 251, 0.08); }
+            50% { box-shadow: 0 4px 20px rgba(97, 218, 251, 0.4), 0 0 30px rgba(97, 218, 251, 0.3); }
+            100% { box-shadow: 0 2px 8px rgba(97, 218, 251, 0.08); }
         }
 
         .timer-hub-item-content {
@@ -1717,7 +1754,7 @@
 
         <div class="main-container">
             <div class="app-header">
-                <img src="vta-512.png" alt="App Icon" class="app-icon">
+                <img src="vta-512.png" alt="App Icon" class="app-icon" loading="lazy">
                 <h1 class="app-title">Visual Appointment Reminders</h1>
             </div>
             
@@ -1832,6 +1869,201 @@
         let serviceWorkerRegistration = null;
         let isAppInBackground = false;
         let backgroundSyncSupported = false;
+
+        // IndexedDB Manager for offline data persistence
+        class IndexedDBManager {
+            constructor() {
+                this.dbName = 'VisualAppointmentTimerDB';
+                this.dbVersion = 1;
+                this.db = null;
+                this.isSupported = 'indexedDB' in window;
+            }
+
+            async init() {
+                if (!this.isSupported) {
+                    console.warn('IndexedDB not supported, falling back to memory storage');
+                    return false;
+                }
+
+                try {
+                    this.db = await this.openDatabase();
+                    console.log('IndexedDB initialized successfully');
+                    return true;
+                } catch (error) {
+                    console.error('Failed to initialize IndexedDB:', error);
+                    return false;
+                }
+            }
+
+            openDatabase() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.dbVersion);
+
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        
+                        // Create appointments store
+                        if (!db.objectStoreNames.contains('appointments')) {
+                            const appointmentStore = db.createObjectStore('appointments', { 
+                                keyPath: 'id', 
+                                autoIncrement: true 
+                            });
+                            appointmentStore.createIndex('appointmentTime', 'appointmentTime', { unique: false });
+                            appointmentStore.createIndex('reminderTime', 'reminderTime', { unique: false });
+                        }
+
+                        // Create settings store
+                        if (!db.objectStoreNames.contains('settings')) {
+                            db.createObjectStore('settings', { keyPath: 'key' });
+                        }
+                    };
+                });
+            }
+
+            // Appointment CRUD operations
+            async saveAppointment(appointment) {
+                if (!this.db) return null;
+                
+                try {
+                    const transaction = this.db.transaction(['appointments'], 'readwrite');
+                    const store = transaction.objectStore('appointments');
+                    const result = await this.promisifyRequest(store.add(appointment));
+                    console.log('Appointment saved to IndexedDB:', result);
+                    return result;
+                } catch (error) {
+                    console.error('Failed to save appointment:', error);
+                    return null;
+                }
+            }
+
+            async updateAppointment(appointment) {
+                if (!this.db) return false;
+                
+                try {
+                    const transaction = this.db.transaction(['appointments'], 'readwrite');
+                    const store = transaction.objectStore('appointments');
+                    await this.promisifyRequest(store.put(appointment));
+                    console.log('Appointment updated in IndexedDB');
+                    return true;
+                } catch (error) {
+                    console.error('Failed to update appointment:', error);
+                    return false;
+                }
+            }
+
+            async deleteAppointment(id) {
+                if (!this.db) return false;
+                
+                try {
+                    const transaction = this.db.transaction(['appointments'], 'readwrite');
+                    const store = transaction.objectStore('appointments');
+                    await this.promisifyRequest(store.delete(id));
+                    console.log('Appointment deleted from IndexedDB');
+                    return true;
+                } catch (error) {
+                    console.error('Failed to delete appointment:', error);
+                    return false;
+                }
+            }
+
+            async getAllAppointments() {
+                if (!this.db) return [];
+                
+                try {
+                    const transaction = this.db.transaction(['appointments'], 'readonly');
+                    const store = transaction.objectStore('appointments');
+                    const result = await this.promisifyRequest(store.getAll());
+                    console.log('Loaded appointments from IndexedDB:', result.length);
+                    return result;
+                } catch (error) {
+                    console.error('Failed to load appointments:', error);
+                    return [];
+                }
+            }
+
+            // Settings operations
+            async saveSetting(key, value) {
+                if (!this.db) return false;
+                
+                try {
+                    const transaction = this.db.transaction(['settings'], 'readwrite');
+                    const store = transaction.objectStore('settings');
+                    await this.promisifyRequest(store.put({ key, value }));
+                    return true;
+                } catch (error) {
+                    console.error('Failed to save setting:', error);
+                    return false;
+                }
+            }
+
+            async getSetting(key, defaultValue = null) {
+                if (!this.db) return defaultValue;
+                
+                try {
+                    const transaction = this.db.transaction(['settings'], 'readonly');
+                    const store = transaction.objectStore('settings');
+                    const result = await this.promisifyRequest(store.get(key));
+                    return result ? result.value : defaultValue;
+                } catch (error) {
+                    console.error('Failed to get setting:', error);
+                    return defaultValue;
+                }
+            }
+
+            // Utility method to promisify IndexedDB requests
+            promisifyRequest(request) {
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            // Clear all data (for testing/reset)
+            async clearAllData() {
+                if (!this.db) return false;
+                
+                try {
+                    const transaction = this.db.transaction(['appointments', 'settings'], 'readwrite');
+                    await Promise.all([
+                        this.promisifyRequest(transaction.objectStore('appointments').clear()),
+                        this.promisifyRequest(transaction.objectStore('settings').clear())
+                    ]);
+                    console.log('All data cleared from IndexedDB');
+                    return true;
+                } catch (error) {
+                    console.error('Failed to clear data:', error);
+                    return false;
+                }
+            }
+
+            // Export data for backup
+            async exportData() {
+                const appointments = await this.getAllAppointments();
+                const settings = await this.getAllSettings();
+                return {
+                    appointments,
+                    settings,
+                    exportDate: new Date().toISOString(),
+                    version: this.dbVersion
+                };
+            }
+
+            async getAllSettings() {
+                if (!this.db) return [];
+                
+                try {
+                    const transaction = this.db.transaction(['settings'], 'readonly');
+                    const store = transaction.objectStore('settings');
+                    return await this.promisifyRequest(store.getAll());
+                } catch (error) {
+                    console.error('Failed to load settings:', error);
+                    return [];
+                }
+            }
+        }
 
         // PWA and background functionality
         class PWAManager {
@@ -2184,25 +2416,424 @@
         const pwaManager = new PWAManager();
         const wakeLockManager = new WakeLockManager();
         const audioManager = new AudioManager();
+        const dbManager = new IndexedDBManager();
 
-        // Android Notification Manager for persistent countdown notifications
-        class AndroidNotificationManager {
+        // Enhanced save functions that use IndexedDB
+        async function saveAppointmentToDB(appointment) {
+            if (dbManager.isSupported && dbManager.db) {
+                try {
+                    const id = await dbManager.saveAppointment(appointment);
+                    if (id) {
+                        appointment.id = id;
+                    }
+                    return id;
+                } catch (error) {
+                    console.error('Failed to save appointment to DB:', error);
+                }
+            }
+            return null;
+        }
+
+        async function updateAppointmentInDB(appointment) {
+            if (dbManager.isSupported && dbManager.db) {
+                try {
+                    return await dbManager.updateAppointment(appointment);
+                } catch (error) {
+                    console.error('Failed to update appointment in DB:', error);
+                }
+            }
+            return false;
+        }
+
+        async function deleteAppointmentFromDB(id) {
+            if (dbManager.isSupported && dbManager.db) {
+                try {
+                    return await dbManager.deleteAppointment(id);
+                } catch (error) {
+                    console.error('Failed to delete appointment from DB:', error);
+                }
+            }
+            return false;
+        }
+
+        async function saveSettingToDB(key, value) {
+            if (dbManager.isSupported && dbManager.db) {
+                try {
+                    return await dbManager.saveSetting(key, value);
+                } catch (error) {
+                    console.error('Failed to save setting to DB:', error);
+                }
+            }
+            return false;
+        }
+
+        // Cross-Platform Notification Manager for enhanced PWA integration
+        class CrossPlatformNotificationManager {
             constructor() {
                 this.activeNotifications = new Map();
-                this.updateInterval = null;
+                this.reminderTimeouts = new Map();
+                this.fiveMinuteTimeouts = new Map();
+                this.countdownUpdateIntervals = new Map();
                 this.isSupported = 'Notification' in window;
+                this.platform = this.detectPlatform();
             }
 
             async init() {
                 if (!this.isSupported) return;
                 
-                // Start updating notifications every 30 seconds
-                this.updateInterval = setInterval(() => {
-                    this.updateCountdownNotifications();
-                }, 30000);
+                console.log(`Cross-Platform Notification Manager initialized for ${this.platform.os}`);
+                
+                // Platform-specific optimizations
+                this.setupPlatformOptimizations();
             }
 
-            async createCountdownNotification(appointment) {
+            // Enhanced platform detection
+            detectPlatform() {
+                const userAgent = navigator.userAgent;
+                const platform = navigator.platform;
+                
+                let os = 'unknown';
+                let browser = 'unknown';
+                let isMobile = false;
+
+                // Detect OS
+                if (/iPad|iPhone|iPod/.test(userAgent) || (platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+                    os = 'ios';
+                    isMobile = true;
+                } else if (/Android/.test(userAgent)) {
+                    os = 'android';
+                    isMobile = true;
+                } else if (/Windows/.test(userAgent) || /Win/.test(platform)) {
+                    os = 'windows';
+                } else if (/Mac/.test(userAgent) || /Mac/.test(platform)) {
+                    os = 'macos';
+                } else if (/Linux/.test(userAgent) || /Linux/.test(platform)) {
+                    os = 'linux';
+                }
+
+                // Detect browser
+                if (/Chrome/.test(userAgent) && !/Edge/.test(userAgent)) {
+                    browser = 'chrome';
+                } else if (/Firefox/.test(userAgent)) {
+                    browser = 'firefox';
+                } else if (/Safari/.test(userAgent) && !/Chrome/.test(userAgent)) {
+                    browser = 'safari';
+                } else if (/Edge/.test(userAgent)) {
+                    browser = 'edge';
+                }
+
+                return {
+                    os,
+                    browser,
+                    isMobile,
+                    isIOS: os === 'ios',
+                    isAndroid: os === 'android',
+                    isWindows: os === 'windows',
+                    isMacOS: os === 'macos',
+                    isLinux: os === 'linux',
+                    isDesktop: !isMobile
+                };
+            }
+
+            // Setup platform-specific optimizations
+            setupPlatformOptimizations() {
+                if (this.platform.isIOS) {
+                    // iOS: Longer intervals to preserve battery
+                    this.countdownUpdateInterval = 60000; // 1 minute
+                    this.maxNotifications = 3; // iOS limits notifications
+                } else if (this.platform.isAndroid) {
+                    // Android: More frequent updates, full feature support
+                    this.countdownUpdateInterval = 30000; // 30 seconds
+                    this.maxNotifications = 10;
+                } else if (this.platform.isWindows) {
+                    // Windows: Full desktop notification support
+                    this.countdownUpdateInterval = 30000; // 30 seconds
+                    this.maxNotifications = 15;
+                    this.supportsActions = true;
+                } else if (this.platform.isMacOS) {
+                    // macOS: Safari-specific handling
+                    this.countdownUpdateInterval = 45000; // 45 seconds
+                    this.maxNotifications = 8;
+                    this.supportsActions = this.platform.browser === 'chrome';
+                } else if (this.platform.isLinux) {
+                    // Linux: Varies by desktop environment
+                    this.countdownUpdateInterval = 30000; // 30 seconds
+                    this.maxNotifications = 12;
+                    this.supportsActions = true;
+                }
+            }
+
+            // Enhanced notification options based on platform
+            getNotificationOptions(type, appointment, data = {}) {
+                const baseOptions = {
+                    icon: './vta-192.png',
+                    badge: './vta-192.png',
+                    requireInteraction: type === 'alarm' || type === 'reminder',
+                    silent: type === 'countdown',
+                    data: {
+                        appointmentId: appointment.id,
+                        type: type,
+                        ...data
+                    }
+                };
+
+                // Platform-specific enhancements
+                if (this.platform.isDesktop) {
+                    // Desktop platforms support more features
+                    if (this.platform.isWindows || this.platform.isLinux || 
+                        (this.platform.isMacOS && this.platform.browser === 'chrome')) {
+                        baseOptions.actions = this.getActionsForType(type);
+                    }
+                }
+
+                // Vibration support (mobile only, not iOS)
+                if (this.platform.isAndroid && 'vibrate' in navigator) {
+                    baseOptions.vibrate = this.getVibrationPattern(type);
+                }
+
+                return baseOptions;
+            }
+
+            // Get appropriate actions based on notification type and platform
+            getActionsForType(type) {
+                const actions = {
+                    reminder: [
+                        {
+                            action: 'view',
+                            title: '👁️ View App',
+                            icon: './vta-192.png'
+                        },
+                        {
+                            action: 'snooze',
+                            title: '⏰ Snooze 5min',
+                            icon: './vta-192.png'
+                        }
+                    ],
+                    warning: [
+                        {
+                            action: 'view',
+                            title: '👁️ View App',
+                            icon: './vta-192.png'
+                        },
+                        {
+                            action: 'prepare',
+                            title: '🚀 Getting Ready',
+                            icon: './vta-192.png'
+                        }
+                    ],
+                    countdown: [
+                        {
+                            action: 'view',
+                            title: '👁️ View',
+                            icon: './vta-192.png'
+                        },
+                        {
+                            action: 'cancel',
+                            title: '❌ Cancel',
+                            icon: './vta-192.png'
+                        }
+                    ],
+                    alarm: [
+                        {
+                            action: 'view',
+                            title: '👁️ View App',
+                            icon: './vta-192.png'
+                        },
+                        {
+                            action: 'dismiss',
+                            title: '✓ Dismiss',
+                            icon: './vta-192.png'
+                        }
+                    ]
+                };
+
+                return actions[type] || [];
+            }
+
+            // Get vibration pattern based on notification type
+            getVibrationPattern(type) {
+                const patterns = {
+                    reminder: [200, 100, 200],
+                    warning: [300, 150, 300, 150, 300],
+                    alarm: [500, 200, 500, 200, 500],
+                    countdown: [100] // Subtle vibration for countdown updates
+                };
+
+                return patterns[type] || [200];
+            }
+
+            // Schedule precise reminder notifications for an appointment
+            scheduleAppointmentNotifications(appointment) {
+                if (!this.isSupported || Notification.permission !== 'granted') return;
+
+                const now = new Date();
+                const appointmentTime = appointment.appointmentTime;
+                const reminderTime = new Date(appointmentTime.getTime() - (appointment.reminderMinutes * 60 * 1000));
+                const fiveMinuteWarningTime = new Date(appointmentTime.getTime() - (5 * 60 * 1000));
+
+                console.log(`Scheduling notifications for appointment ${appointment.id}:`);
+                console.log(`- Reminder at: ${formatTime12Hour(reminderTime)}`);
+                console.log(`- 5-minute warning at: ${formatTime12Hour(fiveMinuteWarningTime)}`);
+                console.log(`- Appointment at: ${formatTime12Hour(appointmentTime)}`);
+
+                // Clear any existing timeouts for this appointment
+                this.clearAppointmentNotifications(appointment.id);
+
+                // Schedule reminder notification
+                const reminderDelay = reminderTime.getTime() - now.getTime();
+                if (reminderDelay > 0) {
+                    const reminderTimeout = setTimeout(() => {
+                        this.sendReminderNotification(appointment);
+                    }, reminderDelay);
+                    this.reminderTimeouts.set(appointment.id, reminderTimeout);
+                    console.log(`Reminder notification scheduled in ${Math.round(reminderDelay / 1000)}s`);
+                }
+
+                // Schedule 5-minute warning notification (only if it's different from reminder)
+                const fiveMinuteDelay = fiveMinuteWarningTime.getTime() - now.getTime();
+                if (fiveMinuteDelay > 0 && Math.abs(fiveMinuteDelay - reminderDelay) > 60000) { // At least 1 minute difference
+                    const fiveMinuteTimeout = setTimeout(() => {
+                        this.sendFiveMinuteWarning(appointment);
+                    }, fiveMinuteDelay);
+                    this.fiveMinuteTimeouts.set(appointment.id, fiveMinuteTimeout);
+                    console.log(`5-minute warning scheduled in ${Math.round(fiveMinuteDelay / 1000)}s`);
+                }
+
+                // Start live countdown notifications when app is backgrounded
+                if (document.hidden) {
+                    this.startLiveCountdown(appointment);
+                }
+            }
+
+            // Send reminder notification when reminder time is reached
+            async sendReminderNotification(appointment) {
+                if (!this.isSupported || Notification.permission !== 'granted') return;
+
+                const appointmentTime12h = formatTime12Hour(appointment.appointmentTime);
+                const reminderText = appointment.reminderMinutes === 60 ? '1 hour' : 
+                                   appointment.reminderMinutes === 30 ? '30 minutes' :
+                                   appointment.reminderMinutes === 15 ? '15 minutes' :
+                                   appointment.reminderMinutes === 5 ? '5 minutes' :
+                                   `${appointment.reminderMinutes} minutes`;
+
+                const notificationOptions = {
+                    body: `${reminderText} until your ${appointment.tag} appointment at ${appointmentTime12h}`,
+                    tag: `reminder-${appointment.id}`,
+                    ...this.getNotificationOptions('reminder', appointment)
+                };
+
+                await this.showPlatformNotification(
+                    `⏰ ${appointment.desc || appointment.tag} Reminder`,
+                    notificationOptions,
+                    appointment.id
+                );
+
+                console.log(`Reminder notification sent for appointment ${appointment.id}`);
+            }
+
+            // Send 5-minute warning notification
+            async sendFiveMinuteWarning(appointment) {
+                if (!this.isSupported || Notification.permission !== 'granted') return;
+
+                const appointmentTime12h = formatTime12Hour(appointment.appointmentTime);
+
+                const notificationOptions = {
+                    body: `5 minutes until your ${appointment.tag} appointment at ${appointmentTime12h}`,
+                    tag: `warning-${appointment.id}`,
+                    ...this.getNotificationOptions('warning', appointment)
+                };
+
+                await this.showPlatformNotification(
+                    `🚨 ${appointment.desc || appointment.tag} Soon!`,
+                    notificationOptions,
+                    appointment.id
+                );
+
+                console.log(`5-minute warning sent for appointment ${appointment.id}`);
+            }
+
+            // Start live countdown notifications (updates every 30 seconds in background)
+            startLiveCountdown(appointment) {
+                if (!this.isSupported || Notification.permission !== 'granted') return;
+
+                // Clear existing countdown interval
+                if (this.countdownUpdateIntervals.has(appointment.id)) {
+                    clearInterval(this.countdownUpdateIntervals.get(appointment.id));
+                }
+
+                // Start countdown notification immediately
+                this.updateCountdownNotification(appointment);
+
+                // Update every 30 seconds (or 60 seconds on iOS)
+                const interval = setInterval(() => {
+                    const now = new Date();
+                    const timeLeft = appointment.appointmentTime - now;
+                    
+                    if (timeLeft <= 0) {
+                        this.stopLiveCountdown(appointment.id);
+                        return;
+                    }
+                    
+                    this.updateCountdownNotification(appointment);
+                }, this.countdownUpdateInterval || 30000);
+
+                this.countdownUpdateIntervals.set(appointment.id, interval);
+                console.log(`Live countdown started for appointment ${appointment.id}`);
+            }
+
+            // Universal notification method that works across all platforms
+            async showPlatformNotification(title, options, appointmentId) {
+                try {
+                    if (serviceWorkerRegistration && 'showNotification' in serviceWorkerRegistration) {
+                        // Use service worker for better cross-platform support
+                        await serviceWorkerRegistration.showNotification(title, options);
+                    } else {
+                        // Fallback to basic Notification API
+                        const notification = new Notification(title, options);
+                        
+                        notification.onclick = () => {
+                            window.focus();
+                            if (appointmentId) {
+                                scrollToAppointment(appointmentId);
+                            }
+                            notification.close();
+                        };
+
+                        // Handle notification actions if supported
+                        if (notification.addEventListener) {
+                            notification.addEventListener('click', () => {
+                                window.focus();
+                                if (appointmentId) {
+                                    scrollToAppointment(appointmentId);
+                                }
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Failed to show ${options.data?.type || 'unknown'} notification:`, error);
+                    
+                    // Ultimate fallback: try basic notification without advanced features
+                    try {
+                        const basicNotification = new Notification(title, {
+                            body: options.body,
+                            icon: options.icon
+                        });
+                        
+                        basicNotification.onclick = () => {
+                            window.focus();
+                            if (appointmentId) {
+                                scrollToAppointment(appointmentId);
+                            }
+                            basicNotification.close();
+                        };
+                    } catch (fallbackError) {
+                        console.error('Even basic notification failed:', fallbackError);
+                    }
+                }
+            }
+
+            // Update countdown notification with current time remaining
+            async updateCountdownNotification(appointment) {
                 if (!this.isSupported || Notification.permission !== 'granted') return;
 
                 const now = new Date();
@@ -2230,74 +2861,51 @@
                 
                 const notificationOptions = {
                     body: `${countdownText} until ${appointment.tag} at ${appointmentTime12h}`,
-                    icon: './vta-192.png',
-                    badge: './vta-192.png',
                     tag: `countdown-${appointment.id}`,
                     renotify: true,
-                    requireInteraction: false,
-                    silent: true,
-                    ongoing: true, // Android persistent notification
-                    data: {
-                        appointmentId: appointment.id,
-                        type: 'countdown',
-                        timeLeft: timeLeft
-                    },
-                    actions: [
-                        {
-                            action: 'view',
-                            title: '👁️ View',
-                            icon: './vta-192.png'
-                        },
-                        {
-                            action: 'cancel',
-                            title: '❌ Cancel',
-                            icon: './vta-192.png'
-                        }
-                    ]
+                    ...this.getNotificationOptions('countdown', appointment, { timeLeft })
                 };
 
-                try {
-                    if (serviceWorkerRegistration && 'showNotification' in serviceWorkerRegistration) {
-                        await serviceWorkerRegistration.showNotification(
-                            `⏰ ${appointment.desc || appointment.tag} Countdown`,
-                            notificationOptions
-                        );
-                    } else {
-                        const notification = new Notification(
-                            `⏰ ${appointment.desc || appointment.tag} Countdown`,
-                            notificationOptions
-                        );
-                        
-                        notification.onclick = () => {
-                            window.focus();
-                            scrollToAppointment(appointment.id);
-                            notification.close();
-                        };
-                    }
-                    
-                    this.activeNotifications.set(appointment.id, {
-                        appointment: appointment,
-                        lastUpdate: now
-                    });
-                } catch (error) {
-                    console.error('Failed to create countdown notification:', error);
+                await this.showPlatformNotification(
+                    `⏱️ ${appointment.desc || appointment.tag} Countdown`,
+                    notificationOptions,
+                    appointment.id
+                );
+                
+                this.activeNotifications.set(appointment.id, {
+                    appointment: appointment,
+                    lastUpdate: now
+                });
+            }
+
+            // Stop live countdown notifications
+            stopLiveCountdown(appointmentId) {
+                if (this.countdownUpdateIntervals.has(appointmentId)) {
+                    clearInterval(this.countdownUpdateIntervals.get(appointmentId));
+                    this.countdownUpdateIntervals.delete(appointmentId);
+                    console.log(`Live countdown stopped for appointment ${appointmentId}`);
                 }
             }
 
-            async updateCountdownNotifications() {
-                if (!this.isSupported || this.activeNotifications.size === 0) return;
-
-                for (const [appointmentId, notificationData] of this.activeNotifications.entries()) {
-                    const appointment = appointments.find(app => app.id === appointmentId);
-                    
-                    if (!appointment) {
-                        this.removeNotification(appointmentId);
-                        continue;
-                    }
-
-                    // Update the notification with new countdown
-                    await this.createCountdownNotification(appointment);
+            // Clear all notification timeouts for an appointment
+            clearAppointmentNotifications(appointmentId) {
+                // Clear reminder timeout
+                if (this.reminderTimeouts.has(appointmentId)) {
+                    clearTimeout(this.reminderTimeouts.get(appointmentId));
+                    this.reminderTimeouts.delete(appointmentId);
                 }
+
+                // Clear 5-minute warning timeout
+                if (this.fiveMinuteTimeouts.has(appointmentId)) {
+                    clearTimeout(this.fiveMinuteTimeouts.get(appointmentId));
+                    this.fiveMinuteTimeouts.delete(appointmentId);
+                }
+
+                // Stop live countdown
+                this.stopLiveCountdown(appointmentId);
+
+                // Remove active notification
+                this.removeNotification(appointmentId);
             }
 
             async removeNotification(appointmentId) {
@@ -2305,10 +2913,18 @@
                 
                 try {
                     if (serviceWorkerRegistration) {
-                        const notifications = await serviceWorkerRegistration.getNotifications({
-                            tag: `countdown-${appointmentId}`
-                        });
-                        notifications.forEach(notification => notification.close());
+                        // Remove all notification types for this appointment
+                        const tags = [
+                            `countdown-${appointmentId}`,
+                            `reminder-${appointmentId}`,
+                            `warning-${appointmentId}`,
+                            `alarm-${appointmentId}`
+                        ];
+                        
+                        for (const tag of tags) {
+                            const notifications = await serviceWorkerRegistration.getNotifications({ tag });
+                            notifications.forEach(notification => notification.close());
+                        }
                     }
                 } catch (error) {
                     console.error('Failed to remove notification:', error);
@@ -2322,74 +2938,59 @@
                 
                 const notificationOptions = {
                     body: `Your ${appointment.tag} appointment at ${appointmentTime12h} is starting NOW!`,
-                    icon: './vta-192.png',
-                    badge: './vta-192.png',
                     tag: `alarm-${appointment.id}`,
                     renotify: true,
-                    requireInteraction: true,
-                    silent: false,
-                    vibrate: [500, 200, 500, 200, 500],
-                    data: {
-                        appointmentId: appointment.id,
-                        type: 'alarm'
-                    },
-                    actions: [
-                        {
-                            action: 'view',
-                            title: '👁️ View App',
-                            icon: './vta-192.png'
-                        },
-                        {
-                            action: 'dismiss',
-                            title: '✓ Dismiss',
-                            icon: './vta-192.png'
-                        }
-                    ]
+                    ...this.getNotificationOptions('alarm', appointment)
                 };
 
-                try {
-                    if (serviceWorkerRegistration && 'showNotification' in serviceWorkerRegistration) {
-                        await serviceWorkerRegistration.showNotification(
-                            `🚨 ${appointment.desc || appointment.tag} TIME!`,
-                            notificationOptions
-                        );
-                    } else {
-                        const notification = new Notification(
-                            `🚨 ${appointment.desc || appointment.tag} TIME!`,
-                            notificationOptions
-                        );
-                        
-                        notification.onclick = () => {
-                            window.focus();
-                            scrollToAppointment(appointment.id);
-                            notification.close();
-                        };
-                    }
-                } catch (error) {
-                    console.error('Failed to send alarm notification:', error);
-                }
+                await this.showPlatformNotification(
+                    `🚨 ${appointment.desc || appointment.tag} TIME!`,
+                    notificationOptions,
+                    appointment.id
+                );
             }
 
             startCountdownNotification(appointment) {
-                if (document.hidden) {
-                    this.createCountdownNotification(appointment);
-                }
+                // Schedule all notifications for this appointment
+                this.scheduleAppointmentNotifications(appointment);
             }
 
             stopCountdownNotification(appointment) {
-                this.removeNotification(appointment.id);
+                this.clearAppointmentNotifications(appointment.id);
+            }
+
+            // Handle visibility changes
+            handleVisibilityChange() {
+                if (document.hidden) {
+                    // App going to background - start live countdowns for selected appointments
+                    appointments.forEach(appointment => {
+                        if (appointment.selected) {
+                            this.startLiveCountdown(appointment);
+                        }
+                    });
+                } else {
+                    // App coming to foreground - stop live countdowns
+                    appointments.forEach(appointment => {
+                        this.stopLiveCountdown(appointment.id);
+                    });
+                }
             }
 
             cleanup() {
-                if (this.updateInterval) {
-                    clearInterval(this.updateInterval);
-                }
+                // Clear all timeouts and intervals
+                this.reminderTimeouts.forEach(timeout => clearTimeout(timeout));
+                this.fiveMinuteTimeouts.forEach(timeout => clearTimeout(timeout));
+                this.countdownUpdateIntervals.forEach(interval => clearInterval(interval));
+                
+                this.reminderTimeouts.clear();
+                this.fiveMinuteTimeouts.clear();
+                this.countdownUpdateIntervals.clear();
                 this.activeNotifications.clear();
             }
         }
 
-        // Initialize Android notification manager
-        const androidNotificationManager = new AndroidNotificationManager();
+        // Initialize Cross-Platform notification manager
+        const crossPlatformNotificationManager = new CrossPlatformNotificationManager();
 
         // Color mapping for appointment types
         const appointmentColors = {
@@ -2438,6 +3039,38 @@
 
         // Enhanced service worker registration and initialization
         async function initializeApp() {
+            // First initialize the database and load saved data
+            try {
+                // Initialize IndexedDB
+                const dbInitialized = await dbManager.init();
+                
+                if (dbInitialized) {
+                    // Load saved appointments
+                    const savedAppointments = await dbManager.getAllAppointments();
+                    if (savedAppointments.length > 0) {
+                        appointments.splice(0, appointments.length, ...savedAppointments);
+                        appointments.sort((a, b) => a.appointmentTime - b.appointmentTime);
+                        updateAppointmentList();
+                        
+                        // Restart timers for active appointments
+                        appointments.forEach(appointment => {
+                            startCountdown(appointment);
+                            setupReminder(appointment);
+                        });
+                    }
+                    
+                    // Load saved settings
+                    const savedVolume = await dbManager.getSetting('volume', 0.8);
+                    currentVolume = savedVolume;
+                    
+                    console.log(`Loaded ${appointments.length} appointments from storage`);
+                } else {
+                    console.log('Using memory storage (data will not persist)');
+                }
+            } catch (error) {
+                console.error('Database initialization error:', error);
+            }
+            
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             
@@ -2470,10 +3103,17 @@
             const volumeSlider = document.getElementById('volumeSlider');
             const volumeValue = document.getElementById('volumeValue');
             
+            // Set initial volume from loaded settings
+            volumeSlider.value = currentVolume * 100;
+            volumeValue.textContent = Math.round(currentVolume * 100) + '%';
+            
             volumeSlider.addEventListener('input', function() {
                 currentVolume = this.value / 100;
                 volumeValue.textContent = this.value + '%';
                 audioManager.updateVolume(currentVolume);
+                
+                // Save volume setting to IndexedDB
+                saveSettingToDB('volume', currentVolume);
                 
                 // Haptic feedback on volume change
                 hapticFeedback();
@@ -2482,23 +3122,12 @@
             // Initialize audio
             await audioManager.init();
             
-            // Initialize Android notification manager
-            await androidNotificationManager.init();
+            // Initialize Cross-Platform notification manager
+            await crossPlatformNotificationManager.init();
             
             // Handle visibility changes for background notifications
             document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    // App going to background - start countdown notifications
-                    const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-                    appointments.forEach(appointment => {
-                        if (appointment.selected) {
-                            androidNotificationManager.startCountdownNotification(appointment);
-                        }
-                    });
-                } else {
-                    // App coming to foreground - update notifications
-                    androidNotificationManager.updateCountdownNotifications();
-                }
+                crossPlatformNotificationManager.handleVisibilityChange();
             });
             
             // Setup radio button styling
@@ -2519,6 +3148,18 @@
                     e.preventDefault();
                     cancelEdit();
                 }
+            });
+            
+            // Setup window resize listener for responsive countdown labels
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    // Update responsiveness for all active appointments
+                    appointments.forEach(appointment => {
+                        updateCountdownResponsiveness(appointment.id);
+                    });
+                }, 250); // Debounce resize events
             });
             
             // Setup form change detection
@@ -2867,6 +3508,9 @@
                         reminderMinutes: reminderMinutes,
                         totalDuration: totalDuration
                     };
+                    
+                    // Update in IndexedDB
+                    updateAppointmentInDB(appointments[appointmentIndex]);
                 }
                 editingAppointmentId = null;
                 addButton.textContent = 'Add Appointment';
@@ -2881,14 +3525,34 @@
                     reminderMinutes: reminderMinutes,
                     totalDuration: totalDuration
                 };
-                appointments.push(appointment);
-                showSuccessMessage('Appointment added successfully!');
+                
+                // Save to IndexedDB first, then add to memory array
+                saveAppointmentToDB(appointment).then((savedId) => {
+                    if (savedId) {
+                        appointment.id = savedId;
+                    }
+                    appointments.push(appointment);
+                    appointments.sort((a, b) => a.appointmentTime - b.appointmentTime);
+                    updateAppointmentList();
+                    updateWakeLock();
+                    updatePageTitle();
+                });
+                
+                showSuccessMessage('Appointment saved successfully!');
             }
-
-            appointments.sort((a, b) => a.appointmentTime - b.appointmentTime);
-            updateAppointmentList();
-            updateWakeLock();
-            updatePageTitle();
+            
+            // Schedule notifications for the new/updated appointment
+            if (editingAppointmentId) {
+                const updatedAppointment = appointments.find(app => app.id === editingAppointmentId);
+                if (updatedAppointment) {
+                    crossPlatformNotificationManager.scheduleAppointmentNotifications(updatedAppointment);
+                }
+            } else {
+                const newAppointment = appointments[appointments.length - 1];
+                if (newAppointment) {
+                    crossPlatformNotificationManager.scheduleAppointmentNotifications(newAppointment);
+                }
+            }
             
             // Clear loading state immediately
             resetButtonState();
@@ -3039,6 +3703,94 @@
             }
         }
 
+        // Helper function to get responsive countdown label
+        function getResponsiveCountdownLabel(type, segmentWidth) {
+            const labels = {
+                hours: {
+                    full: 'Hours',
+                    truncated: 'Hrs',
+                    short: 'H'
+                },
+                minutes: {
+                    full: 'Minutes',
+                    truncated: 'Mins',
+                    short: 'M'
+                },
+                seconds: {
+                    full: 'Seconds',
+                    truncated: 'Secs',
+                    short: 'S'
+                }
+            };
+
+            // Determine label based on available width
+            if (segmentWidth > 80) {
+                return labels[type].full;
+            } else if (segmentWidth > 50) {
+                return labels[type].truncated;
+            } else if (segmentWidth > 30) {
+                return labels[type].short;
+            } else {
+                return ''; // No label if too narrow
+            }
+        }
+
+        // Update countdown segment responsiveness
+        function updateCountdownResponsiveness(appointmentId) {
+            const countdownContainer = document.getElementById(`countdown-${appointmentId}`);
+            if (!countdownContainer) return;
+
+            const segments = countdownContainer.querySelectorAll('.countdown-segment');
+            const containerWidth = countdownContainer.offsetWidth;
+            
+            segments.forEach((segment, index) => {
+                const segmentWidth = segment.offsetWidth;
+                const label = segment.querySelector('.countdown-label');
+                
+                if (!label) return;
+
+                // Determine segment width category
+                let widthCategory = 'normal';
+                if (segmentWidth < 30) {
+                    widthCategory = 'tiny';
+                } else if (segmentWidth < 50) {
+                    widthCategory = 'very-narrow';
+                } else if (segmentWidth < 80) {
+                    widthCategory = 'narrow';
+                }
+
+                segment.setAttribute('data-width', widthCategory);
+
+                // Update label text based on type and available space
+                const segmentType = index === 0 ? 'hours' : index === 1 ? 'minutes' : 'seconds';
+                const responsiveLabel = getResponsiveCountdownLabel(segmentType, segmentWidth);
+                
+                if (responsiveLabel) {
+                    label.textContent = responsiveLabel;
+                    label.style.display = 'block';
+                } else {
+                    label.style.display = 'none';
+                }
+            });
+        }
+
+        // Helper function to scroll to specific appointment
+        function scrollToAppointment(appointmentId) {
+            const appointmentElement = document.getElementById(`appointment-${appointmentId}`);
+            if (appointmentElement) {
+                appointmentElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                // Add highlight effect
+                appointmentElement.style.animation = 'highlightPulse 2s ease-in-out';
+                setTimeout(() => {
+                    appointmentElement.style.animation = '';
+                }, 2000);
+            }
+        }
+
         // Update wake lock management
         function updateWakeLock() {
             wakeLockManager.update();
@@ -3152,11 +3904,6 @@
                 if (!reminderIntervals[app.id]) {
                     setReminder(app);
                 }
-                
-                // Start countdown notification if app is in background
-                if (document.hidden) {
-                    androidNotificationManager.startCountdownNotification(app);
-                }
             });
             
             // Update timer hub whenever appointment list changes
@@ -3198,6 +3945,12 @@
             if (editingAppointmentId === id) {
                 cancelEdit();
             }
+            
+            // Clear all notifications for this appointment
+            crossPlatformNotificationManager.clearAppointmentNotifications(id);
+            
+            // Remove from IndexedDB first
+            deleteAppointmentFromDB(id);
             
             appointments = appointments.filter(app => app.id !== id);
             clearInterval(countdownIntervals[id]);
@@ -3252,19 +4005,29 @@
                 minutesElement.style.flex = `${Math.max(0.3, minutesPercent / 100 + 0.2)}`;
                 secondsElement.style.flex = `${Math.max(0.3, secondsPercent / 100 + 0.2)}`;
 
-                // Enhanced visual countdown segments with proper content
-                hoursElement.innerHTML = `
-                    <div class="countdown-number">${hours}</div>
-                    <div class="countdown-label">Hours</div>
-                `;
-                minutesElement.innerHTML = `
-                    <div class="countdown-number">${minutes}</div>
-                    <div class="countdown-label">Minutes</div>
-                `;
-                secondsElement.innerHTML = `
-                    <div class="countdown-number">${seconds}</div>
-                    <div class="countdown-label">Seconds</div>
-                `;
+                // Enhanced visual countdown segments with responsive labels
+                setTimeout(() => {
+                    // Get responsive labels based on current segment width
+                    const hoursLabel = getResponsiveCountdownLabel('hours', hoursElement.offsetWidth);
+                    const minutesLabel = getResponsiveCountdownLabel('minutes', minutesElement.offsetWidth);
+                    const secondsLabel = getResponsiveCountdownLabel('seconds', secondsElement.offsetWidth);
+
+                    hoursElement.innerHTML = `
+                        <div class="countdown-number">${hours}</div>
+                        <div class="countdown-label">${hoursLabel}</div>
+                    `;
+                    minutesElement.innerHTML = `
+                        <div class="countdown-number">${minutes}</div>
+                        <div class="countdown-label">${minutesLabel}</div>
+                    `;
+                    secondsElement.innerHTML = `
+                        <div class="countdown-number">${seconds}</div>
+                        <div class="countdown-label">${secondsLabel}</div>
+                    `;
+
+                    // Update responsiveness for this appointment
+                    updateCountdownResponsiveness(appointment.id);
+                }, 10); // Small delay to ensure layout is updated
 
                 // Hide segments when they're zero (except seconds)
                 hoursElement.style.display = hours > 0 ? 'flex' : 'none';
@@ -3375,17 +4138,26 @@
                     }
                     
                     // Stop countdown notification and send alarm notification
-                    androidNotificationManager.stopCountdownNotification(appointment);
-                    androidNotificationManager.sendAlarmNotification(appointment);
+                    crossPlatformNotificationManager.stopCountdownNotification(appointment);
+                    crossPlatformNotificationManager.sendAlarmNotification(appointment);
                     
                     playAlarmSound();
                     
                     countdownText.textContent = "TIME!";
                     countdownText.className = 'countdown-text urgent';
                     
-                    hoursElement.innerHTML = '<div class="countdown-number">0</div><div class="countdown-label">Hours</div>';
-                    minutesElement.innerHTML = '<div class="countdown-number">0</div><div class="countdown-label">Minutes</div>';
-                    secondsElement.innerHTML = '<div class="countdown-number">0</div><div class="countdown-label">Seconds</div>';
+                    // Use responsive labels even for final state
+                    setTimeout(() => {
+                        const hoursLabel = getResponsiveCountdownLabel('hours', hoursElement.offsetWidth);
+                        const minutesLabel = getResponsiveCountdownLabel('minutes', minutesElement.offsetWidth);
+                        const secondsLabel = getResponsiveCountdownLabel('seconds', secondsElement.offsetWidth);
+
+                        hoursElement.innerHTML = `<div class="countdown-number">0</div><div class="countdown-label">${hoursLabel}</div>`;
+                        minutesElement.innerHTML = `<div class="countdown-number">0</div><div class="countdown-label">${minutesLabel}</div>`;
+                        secondsElement.innerHTML = `<div class="countdown-number">0</div><div class="countdown-label">${secondsLabel}</div>`;
+                        
+                        updateCountdownResponsiveness(appointment.id);
+                    }, 10);
                     
                     if (appointmentElement) {
                         appointmentElement.classList.add('past');

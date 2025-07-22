@@ -1,7 +1,7 @@
 {
     "name": "Visual Appointment Timer",
     "short_name": "VTA",
-    "description": "Professional visual countdown timer for appointments with audio reminders and wake lock support",
+    "description": "Professional visual countdown timer for appointments with audio reminders",
     "start_url": "./index.html",
     "scope": "./",
     "display": "standalone",

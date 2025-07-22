@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Label Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+        .countdown-demo {
+            display: flex;
+            margin: 15px 0;
+            border: 1px solid #444;
+            border-radius: 6px;
+            overflow: hidden;
+            height: 60px;
+        }
+        .countdown-segment {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #61dafb, #4fa8c5);
+            color: #1a1a1a;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .countdown-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .countdown-label {
+            font-size: 0.7em;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .countdown-segment[data-width="narrow"] .countdown-label {
+            font-size: 0.6em;
+            letter-spacing: 0.5px;
+        }
+        .countdown-segment[data-width="very-narrow"] .countdown-label {
+            font-size: 0.55em;
+            letter-spacing: 0px;
+        }
+        .countdown-segment[data-width="tiny"] .countdown-label {
+            display: none;
+        }
+        button {
+            background: #61dafb;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #4fa8c5;
+        }
+        .width-slider {
+            margin: 15px 0;
+        }
+        .width-slider input {
+            width: 100%;
+        }
+        .platform-info {
+            background: #333;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>📱 Responsive Countdown Labels & Cross-Platform Tests</h1>
+    
+    <div class="test-section">
+        <h2>🔄 Responsive Label Demonstration</h2>
+        <p>Drag the slider to see how countdown labels adapt to different widths:</p>
+        
+        <div class="width-slider">
+            <label>Container Width: <span id="widthDisplay">100%</span></label>
+            <input type="range" id="widthSlider" min="200" max="600" value="600" oninput="updateWidth()">
+        </div>
+        
+        <div id="countdownDemo" class="countdown-demo">
+            <div class="countdown-segment" id="hours">
+                <div class="countdown-number">2</div>
+                <div class="countdown-label">Hours</div>
+            </div>
+            <div class="countdown-segment" id="minutes">
+                <div class="countdown-number">45</div>
+                <div class="countdown-label">Minutes</div>
+            </div>
+            <div class="countdown-segment" id="seconds">
+                <div class="countdown-number">30</div>
+                <div class="countdown-label">Seconds</div>
+            </div>
+        </div>
+        
+        <p><strong>Label Behavior:</strong></p>
+        <ul>
+            <li><strong>Wide (80px+):</strong> "Hours", "Minutes", "Seconds"</li>
+            <li><strong>Medium (50-80px):</strong> "Hrs", "Mins", "Secs"</li>
+            <li><strong>Narrow (30-50px):</strong> "H", "M", "S"</li>
+            <li><strong>Very Narrow (30px-):</strong> No labels</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🖥️ Platform Detection</h2>
+        <div id="platformInfo" class="platform-info">Detecting platform...</div>
+        <button onclick="detectPlatform()">Refresh Platform Info</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🔔 Cross-Platform Notification Test</h2>
+        <p>Test notifications across different platforms:</p>
+        <button onclick="testNotifications()">Test Cross-Platform Notifications</button>
+        <button onclick="testResponsiveNotifications()">Test Responsive Notifications</button>
+        <div id="notificationStatus" style="margin-top: 10px; padding: 10px; background: #333; border-radius: 4px;">
+            Ready to test notifications...
+        </div>
+    </div>
+
+    <script>
+        // Responsive label helper function
+        function getResponsiveCountdownLabel(type, segmentWidth) {
+            const labels = {
+                hours: { full: 'Hours', truncated: 'Hrs', short: 'H' },
+                minutes: { full: 'Minutes', truncated: 'Mins', short: 'M' },
+                seconds: { full: 'Seconds', truncated: 'Secs', short: 'S' }
+            };
+
+            if (segmentWidth > 80) {
+                return labels[type].full;
+            } else if (segmentWidth > 50) {
+                return labels[type].truncated;
+            } else if (segmentWidth > 30) {
+                return labels[type].short;
+            } else {
+                return '';
+            }
+        }
+
+        // Update countdown responsiveness
+        function updateCountdownResponsiveness() {
+            const demo = document.getElementById('countdownDemo');
+            const segments = demo.querySelectorAll('.countdown-segment');
+            
+            segments.forEach((segment, index) => {
+                const segmentWidth = segment.offsetWidth;
+                const label = segment.querySelector('.countdown-label');
+                
+                // Determine width category
+                let widthCategory = 'normal';
+                if (segmentWidth < 30) {
+                    widthCategory = 'tiny';
+                } else if (segmentWidth < 50) {
+                    widthCategory = 'very-narrow';
+                } else if (segmentWidth < 80) {
+                    widthCategory = 'narrow';
+                }
+
+                segment.setAttribute('data-width', widthCategory);
+
+                // Update label text
+                const segmentType = index === 0 ? 'hours' : index === 1 ? 'minutes' : 'seconds';
+                const responsiveLabel = getResponsiveCountdownLabel(segmentType, segmentWidth);
+                
+                if (responsiveLabel) {
+                    label.textContent = responsiveLabel;
+                    label.style.display = 'block';
+                } else {
+                    label.style.display = 'none';
+                }
+            });
+        }
+
+        // Update width from slider
+        function updateWidth() {
+            const slider = document.getElementById('widthSlider');
+            const demo = document.getElementById('countdownDemo');
+            const display = document.getElementById('widthDisplay');
+            
+            const width = slider.value + 'px';
+            demo.style.width = width;
+            display.textContent = width;
+            
+            // Update responsiveness after a brief delay for layout
+            setTimeout(updateCountdownResponsiveness, 10);
+        }
+
+        // Platform detection (same as in main app)
+        function detectPlatform() {
+            const userAgent = navigator.userAgent;
+            const platform = navigator.platform;
+            
+            let os = 'unknown';
+            let browser = 'unknown';
+            let isMobile = false;
+
+            // Detect OS
+            if (/iPad|iPhone|iPod/.test(userAgent) || (platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+                os = 'iOS';
+                isMobile = true;
+            } else if (/Android/.test(userAgent)) {
+                os = 'Android';
+                isMobile = true;
+            } else if (/Windows/.test(userAgent) || /Win/.test(platform)) {
+                os = 'Windows';
+            } else if (/Mac/.test(userAgent) || /Mac/.test(platform)) {
+                os = 'macOS';
+            } else if (/Linux/.test(userAgent) || /Linux/.test(platform)) {
+                os = 'Linux';
+            }
+
+            // Detect browser
+            if (/Chrome/.test(userAgent) && !/Edge/.test(userAgent)) {
+                browser = 'Chrome';
+            } else if (/Firefox/.test(userAgent)) {
+                browser = 'Firefox';
+            } else if (/Safari/.test(userAgent) && !/Chrome/.test(userAgent)) {
+                browser = 'Safari';
+            } else if (/Edge/.test(userAgent)) {
+                browser = 'Edge';
+            }
+
+            const platformInfo = document.getElementById('platformInfo');
+            platformInfo.innerHTML = `
+                <strong>Operating System:</strong> ${os}<br>
+                <strong>Browser:</strong> ${browser}<br>
+                <strong>Platform:</strong> ${platform}<br>
+                <strong>Mobile Device:</strong> ${isMobile ? 'Yes' : 'No'}<br>
+                <strong>Touch Points:</strong> ${navigator.maxTouchPoints || 0}<br>
+                <strong>Service Worker:</strong> ${'serviceWorker' in navigator ? 'Supported' : 'Not Supported'}<br>
+                <strong>Notifications:</strong> ${'Notification' in window ? 'Supported' : 'Not Supported'}<br>
+                <strong>Vibration:</strong> ${'vibrate' in navigator ? 'Supported' : 'Not Supported'}<br>
+                <strong>Wake Lock:</strong> ${'wakeLock' in navigator ? 'Supported' : 'Not Supported'}
+            `;
+        }
+
+        // Test notifications
+        async function testNotifications() {
+            const status = document.getElementById('notificationStatus');
+            
+            if (!('Notification' in window)) {
+                status.textContent = 'Notifications not supported on this platform';
+                status.style.background = '#842029';
+                return;
+            }
+
+            if (Notification.permission !== 'granted') {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    status.textContent = 'Notification permission denied';
+                    status.style.background = '#842029';
+                    return;
+                }
+            }
+
+            status.textContent = 'Testing cross-platform notifications...';
+            status.style.background = '#0f5132';
+
+            // Test basic notification
+            setTimeout(() => {
+                new Notification('✅ Cross-Platform Test', {
+                    body: 'This notification works on Windows, macOS, Linux, Android, and iOS!',
+                    icon: './vta-192.png',
+                    badge: './vta-192.png'
+                });
+            }, 1000);
+
+            // Test with vibration (mobile only)
+            setTimeout(() => {
+                const options = {
+                    body: 'Testing platform-specific features...',
+                    icon: './vta-192.png',
+                    badge: './vta-192.png'
+                };
+
+                if ('vibrate' in navigator) {
+                    options.vibrate = [200, 100, 200];
+                }
+
+                new Notification('📱 Platform Features', options);
+            }, 3000);
+        }
+
+        // Test responsive notifications
+        function testResponsiveNotifications() {
+            const status = document.getElementById('notificationStatus');
+            status.textContent = 'Testing responsive notification content...';
+            status.style.background = '#0f5132';
+
+            setTimeout(() => {
+                new Notification('⏱️ Countdown Test', {
+                    body: '25m 30s remaining until Meeting at 3:00 PM',
+                    icon: './vta-192.png'
+                });
+            }, 1000);
+
+            setTimeout(() => {
+                new Notification('🚨 Urgent Reminder', {
+                    body: '5 minutes until your appointment!',
+                    icon: './vta-192.png',
+                    requireInteraction: true
+                });
+            }, 3000);
+        }
+
+        // Initialize
+        detectPlatform();
+        updateCountdownResponsiveness();
+        
+        // Update on window resize
+        window.addEventListener('resize', () => {
+            setTimeout(updateCountdownResponsiveness, 100);
+        });
+    </script>
+</body>
+</html>
