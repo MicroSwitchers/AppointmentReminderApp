@@ -1749,7 +1749,11 @@
                 
                 <div class="form-row">
                     <label for="appointmentTime">Alarm Time:</label>
-                    <input type="time" id="appointmentTime" required>
+                    <input type="time" id="appointmentTime" required 
+                           step="60" 
+                           pattern="[0-9]{2}:[0-9]{2}"
+                           title="Select appointment time"
+                           autocomplete="off">
                     <small class="field-help">Time when the appointment starts</small>
                     <div class="input-feedback" id="timeFeedback"></div>
                 </div>
@@ -2195,6 +2199,37 @@
             'Other': '#8b5cf6'
         };
 
+        // Helper function to format time in 12-hour format
+        function formatTime12Hour(date) {
+            return date.toLocaleTimeString([], {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        // Helper function to convert 24-hour input to 12-hour display
+        function format24HourInputTo12Hour(timeString) {
+            if (!timeString) return '';
+            const [hours, minutes] = timeString.split(':');
+            const date = new Date();
+            date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            return formatTime12Hour(date);
+        }
+
+        // Helper function to convert 12-hour time back to 24-hour format for input
+        function convert12HourTo24Hour(time12h) {
+            const [time, modifier] = time12h.split(' ');
+            let [hours, minutes] = time.split(':');
+            if (hours === '12') {
+                hours = '00';
+            }
+            if (modifier === 'PM') {
+                hours = parseInt(hours, 10) + 12;
+            }
+            return `${hours.toString().padStart(2, '0')}:${minutes}`;
+        }
+
         // Enhanced service worker registration and initialization
         async function initializeApp() {
             updateCurrentTime();
@@ -2280,8 +2315,9 @@
             // Handle URL parameters for shortcuts
             handleURLParameters();
             
-            // Setup auto-focus and smart defaults
+            // Setup smart defaults and Android time input helper
             setupSmartDefaults();
+            setupAndroidTimeHelper();
             
             // Initialize timer hub
             setTimeout(() => {
@@ -2361,7 +2397,7 @@
                         if (newTimeDiff > 0) {
                             const hours = Math.floor(newTimeDiff / (1000 * 60 * 60));
                             const minutes = Math.floor((newTimeDiff % (1000 * 60 * 60)) / (1000 * 60));
-                            message = `✓ Appointment in ${hours}h ${minutes}m (tomorrow)`;
+                            message = `✓ Appointment at ${formatTime12Hour(selectedTime)} tomorrow (in ${hours}h ${minutes}m)`;
                         } else {
                             isValid = false;
                             message = 'Time has already passed';
@@ -2374,7 +2410,7 @@
                             isValid = false;
                             message = 'Please select a time at least 5 minutes from now';
                         } else {
-                            message = `✓ Appointment in ${hours}h ${minutes}m`;
+                            message = `✓ Appointment at ${formatTime12Hour(selectedTime)} (in ${hours}h ${minutes}m)`;
                         }
                     }
                 }
@@ -2421,6 +2457,67 @@
             setTimeout(() => {
                 document.getElementById('tagSelect').focus();
             }, 500);
+        }
+
+        // Android time input helper
+        function setupAndroidTimeHelper() {
+            const timeInput = document.getElementById('appointmentTime');
+            
+            // Add change listener for Android time validation
+            timeInput.addEventListener('change', function() {
+                const value = this.value;
+                if (value) {
+                    try {
+                        // Validate time format for Android
+                        const [hours, minutes] = value.split(':').map(num => parseInt(num, 10));
+                        
+                        if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                            showErrorMessage('Please enter a valid time');
+                            this.value = '';
+                            return;
+                        }
+                        
+                        // Create a test time to ensure it's valid
+                        const testTime = new Date();
+                        testTime.setHours(hours, minutes, 0, 0);
+                        
+                        // Show feedback for users in 12-hour format
+                        const feedback = document.getElementById('timeFeedback');
+                        if (feedback) {
+                            feedback.textContent = `✓ Time set: ${formatTime12Hour(testTime)}`;
+                            feedback.className = 'input-feedback success';
+                        }
+                        
+                    } catch (error) {
+                        console.error('Time validation error:', error);
+                        showErrorMessage('Invalid time format. Please try again.');
+                        this.value = '';
+                    }
+                }
+            });
+            
+            // Add input listener for real-time validation on Android
+            timeInput.addEventListener('input', function() {
+                const feedback = document.getElementById('timeFeedback');
+                if (feedback && this.value) {
+                    feedback.textContent = 'Validating time...';
+                    feedback.className = 'input-feedback';
+                }
+            });
+            
+            // Add focus listener to help Android users
+            timeInput.addEventListener('focus', function() {
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([50]);
+                }
+                
+                // Show help text for users
+                const feedback = document.getElementById('timeFeedback');
+                if (feedback && !this.value) {
+                    feedback.textContent = 'Select appointment time';
+                    feedback.className = 'input-feedback';
+                }
+            });
         }
 
         // Enhanced add appointment with better UX
@@ -2483,9 +2580,26 @@
                 }
 
                 const now = new Date();
-                const appointmentTime = new Date(now.toDateString() + ' ' + time);
-                if (appointmentTime <= now) {
-                    appointmentTime.setDate(appointmentTime.getDate() + 1); 
+                
+                // Enhanced time parsing for Android compatibility
+                let appointmentTime;
+                try {
+                    // Parse the time input more reliably
+                    const [hours, minutes] = time.split(':').map(num => parseInt(num, 10));
+                    
+                    // Create appointment time with explicit hour/minute setting
+                    appointmentTime = new Date();
+                    appointmentTime.setHours(hours, minutes, 0, 0);
+                    
+                    // If the time is in the past today, set it for tomorrow
+                    if (appointmentTime <= now) {
+                        appointmentTime.setDate(appointmentTime.getDate() + 1);
+                    }
+                } catch (error) {
+                    console.error('Time parsing error:', error);
+                    showErrorMessage('Invalid time format. Please select a valid time.');
+                    resetButtonState();
+                    return;
                 }
                 
                 // Check if time is too soon
@@ -2693,7 +2807,7 @@
         // Update current time display
         function updateCurrentTime() {
             const now = new Date();
-            document.getElementById('currentTime').textContent = `Current Time: ${now.toLocaleTimeString()}`;
+            document.getElementById('currentTime').textContent = `Current Time: ${formatTime12Hour(now)}`;
         }
 
         // Update radio button styles
@@ -2752,7 +2866,7 @@
                             <div class="appointment-timing">
                                 <div class="timing-row">
                                     <span class="timing-label">🕐 Appointment Time:</span>
-                                    <span class="timing-value">${app.appointmentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                    <span class="timing-value">${formatTime12Hour(app.appointmentTime)}</span>
                                 </div>
                                 <div class="timing-row">
                                     <span class="timing-label">⏰ Reminder:</span>
@@ -2993,6 +3107,15 @@
                     appointment.reminderPassed = true;
                     playWarningBeep();
                     showMessage(`⏰ Reminder: ${appointment.tag} appointment in ${appointment.reminderMinutes} minutes!`, 'info');
+                    
+                    // Enhanced notification for Android
+                    if (document.hidden && Notification.permission === 'granted') {
+                        showNotification(
+                            `⏰ ${appointment.tag} Reminder`, 
+                            `Your appointment starts in ${appointment.reminderMinutes} minutes!`,
+                            { appointmentId: appointment.id }
+                        );
+                    }
                 }
                 
                 // Appointment time reached
@@ -3021,6 +3144,15 @@
                     }
                     
                     showMessage(`🚨 ${appointment.tag} appointment time is NOW!`, 'error');
+                    
+                    // Enhanced notification for Android
+                    if (document.hidden && Notification.permission === 'granted') {
+                        showNotification(
+                            `🚨 ${appointment.tag} Time!`, 
+                            `Your appointment is starting NOW!`,
+                            { appointmentId: appointment.id, requireInteraction: true }
+                        );
+                    }
                     
                     // Auto-remove past appointments after 5 minutes
                     setTimeout(() => {
@@ -3064,9 +3196,13 @@
                 navigator.vibrate([200, 100, 200]);
             }
             
-            // Show notification if app is in background
+            // Show notification if app is in background - Android optimized
             if (document.hidden && Notification.permission === 'granted') {
-                showNotification('Appointment Reminder', 'Your appointment reminder time has been reached!');
+                showNotification(
+                    '⏰ Appointment Reminder', 
+                    'Your appointment reminder time has been reached!',
+                    { silent: false, requireInteraction: true }
+                );
             }
         }
 
@@ -3080,51 +3216,199 @@
                 navigator.vibrate([500, 200, 500, 200, 500]);
             }
             
-            // Show notification if app is in background
+            // Show notification if app is in background - Android optimized
             if (document.hidden && Notification.permission === 'granted') {
-                showNotification('Appointment Time', 'Your appointment time is now!');
+                showNotification(
+                    '🚨 Appointment Time!', 
+                    'Your appointment time is NOW!',
+                    { silent: false, requireInteraction: true, renotify: true }
+                );
             }
         }
 
-        // Enhanced notification function
+        // Enhanced notification function with Android optimizations
         async function showNotification(title, body, options = {}) {
+            // Enhanced Android-compatible notification options
             const defaultOptions = {
                 body: body,
                 icon: './vta-192.png',
                 badge: './vta-192.png',
-                vibrate: [200, 100, 200],
+                vibrate: [200, 100, 200, 100, 200], // Enhanced vibration pattern
                 requireInteraction: true,
-                tag: 'appointment-notification',
+                tag: 'appointment-notification-' + Date.now(), // Unique tag for each notification
+                renotify: true, // Force notification to show even if tag exists
+                silent: false, // Ensure sound plays
+                timestamp: Date.now(),
                 data: {
                     timestamp: Date.now(),
-                    url: './index.html'
+                    url: window.location.href,
+                    appointmentId: options.appointmentId || null
                 },
                 actions: [
                     {
                         action: 'view',
-                        title: 'View App',
+                        title: '👁️ View App',
                         icon: './vta-192.png'
                     },
                     {
                         action: 'dismiss',
-                        title: 'Dismiss',
+                        title: '✖️ Dismiss',
                         icon: './vta-192.png'
                     }
                 ]
             };
 
+            // Merge custom options with defaults
             const notificationOptions = { ...defaultOptions, ...options };
 
             try {
-                if (serviceWorkerRegistration && 'showNotification' in serviceWorkerRegistration) {
-                    // Use service worker for persistent notifications
-                    await serviceWorkerRegistration.showNotification(title, notificationOptions);
-                } else if ('Notification' in window && Notification.permission === 'granted') {
-                    // Fallback to regular notification
-                    new Notification(title, notificationOptions);
+                // Check if we have permission
+                if (Notification.permission !== 'granted') {
+                    console.warn('Notification permission not granted');
+                    return;
                 }
+
+                // Try service worker first for persistent notifications
+                if (serviceWorkerRegistration && 'showNotification' in serviceWorkerRegistration) {
+                    console.log('Showing service worker notification:', title);
+                    await serviceWorkerRegistration.showNotification(title, notificationOptions);
+                } 
+                // Fallback to regular notification API
+                else if ('Notification' in window) {
+                    console.log('Showing regular notification:', title);
+                    const notification = new Notification(title, notificationOptions);
+                    
+                    // Enhanced Android event handling
+                    notification.onclick = function(event) {
+                        console.log('Notification clicked');
+                        event.preventDefault();
+                        window.focus();
+                        if (notificationOptions.data.appointmentId) {
+                            scrollToAppointment(notificationOptions.data.appointmentId);
+                        }
+                        notification.close();
+                    };
+                    
+                    notification.onerror = function(error) {
+                        console.error('Notification error:', error);
+                    };
+                    
+                    // Auto-close after 10 seconds on Android
+                    setTimeout(() => {
+                        if (notification) {
+                            notification.close();
+                        }
+                    }, 10000);
+                }
+                
+                // Additional Android fallback - show in-app alert if notifications fail
+                else {
+                    console.warn('No notification API available, showing alert');
+                    showInAppAlert(title, body);
+                }
+                
             } catch (error) {
                 console.error('Failed to show notification:', error);
+                // Fallback to in-app alert
+                showInAppAlert(title, body);
+            }
+        }
+
+        // In-app alert fallback for Android
+        function showInAppAlert(title, body) {
+            const alertContainer = document.createElement('div');
+            alertContainer.className = 'android-alert-container';
+            alertContainer.innerHTML = `
+                <div class="android-alert">
+                    <div class="android-alert-icon">🔔</div>
+                    <div class="android-alert-content">
+                        <div class="android-alert-title">${title}</div>
+                        <div class="android-alert-body">${body}</div>
+                    </div>
+                    <button class="android-alert-close" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+            `;
+            
+            // Add styles for Android alert
+            if (!document.querySelector('.android-alert-styles')) {
+                const styles = document.createElement('style');
+                styles.className = 'android-alert-styles';
+                styles.textContent = `
+                    .android-alert-container {
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        z-index: 10000;
+                        max-width: 90vw;
+                        animation: slideDown 0.3s ease-out;
+                    }
+                    .android-alert {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 16px 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        min-width: 300px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .android-alert-icon {
+                        font-size: 24px;
+                        flex-shrink: 0;
+                    }
+                    .android-alert-content {
+                        flex: 1;
+                    }
+                    .android-alert-title {
+                        font-weight: 700;
+                        font-size: 16px;
+                        margin-bottom: 4px;
+                    }
+                    .android-alert-body {
+                        font-size: 14px;
+                        opacity: 0.9;
+                    }
+                    .android-alert-close {
+                        background: rgba(255,255,255,0.2);
+                        border: none;
+                        color: white;
+                        border-radius: 50%;
+                        width: 28px;
+                        height: 28px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        font-size: 18px;
+                        transition: background 0.2s;
+                    }
+                    .android-alert-close:hover {
+                        background: rgba(255,255,255,0.3);
+                    }
+                    @keyframes slideDown {
+                        from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+                        to { transform: translateX(-50%) translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styles);
+            }
+            
+            document.body.appendChild(alertContainer);
+            
+            // Auto-remove after 8 seconds
+            setTimeout(() => {
+                if (alertContainer.parentElement) {
+                    alertContainer.style.animation = 'slideUp 0.3s ease-out forwards';
+                    setTimeout(() => alertContainer.remove(), 300);
+                }
+            }, 8000);
+            
+            // Vibrate on Android
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
             }
         }
 
@@ -3142,7 +3426,8 @@
                 const timeLeft = nextAppointment.appointmentTime - now;
                 const hours = Math.floor(timeLeft / (1000 * 60 * 60));
                 const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                document.title = `${hours}h ${minutes}m - ${nextAppointment.tag}`;
+                const appointmentTime12h = formatTime12Hour(nextAppointment.appointmentTime);
+                document.title = `${hours}h ${minutes}m - ${nextAppointment.tag} at ${appointmentTime12h}`;
             }
         }
 
@@ -3208,7 +3493,33 @@
                 
                 document.getElementById('tagSelect').value = appointment.tag;
                 document.getElementById('descInput').value = appointment.desc || '';
-                document.getElementById('appointmentTime').value = appointment.appointmentTime.toTimeString().slice(0, 5);
+                
+                // Enhanced time setting for Android compatibility
+                try {
+                    // The input still needs 24-hour format for functionality
+                    const timeString = appointment.appointmentTime.toTimeString().slice(0, 5);
+                    document.getElementById('appointmentTime').value = timeString;
+                    
+                    // Show user-friendly 12-hour format feedback
+                    const feedback = document.getElementById('timeFeedback');
+                    if (feedback) {
+                        feedback.textContent = `✓ Time set: ${formatTime12Hour(appointment.appointmentTime)}`;
+                        feedback.className = 'input-feedback success';
+                    }
+                    
+                    // Validate the time was set correctly (Android fix)
+                    setTimeout(() => {
+                        const timeInput = document.getElementById('appointmentTime');
+                        if (timeInput.value !== timeString) {
+                            console.warn('Time input issue detected, retrying...');
+                            timeInput.value = timeString;
+                        }
+                    }, 100);
+                    
+                } catch (error) {
+                    console.error('Error setting time for edit:', error);
+                    showErrorMessage('Error loading appointment time. Please set the time manually.');
+                }
                 
                 // Set reminder option
                 const reminderRadio = document.querySelector(`input[name="reminder"][value="${appointment.reminderMinutes}"]`);
