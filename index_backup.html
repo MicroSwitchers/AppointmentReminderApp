@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -262,34 +262,6 @@
             right: 0;
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(97, 218, 251, 0.4), transparent);
-        }
-
-        .form-section.editing {
-            border: 2px solid #f59e0b;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.03));
-            box-shadow: var(--shadow-xl), 0 0 25px rgba(245, 158, 11, 0.2), inset 0 1px 0 var(--glass-medium);
-        }
-
-        .form-section.editing::before {
-            background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.6), transparent);
-            height: 2px;
-        }
-
-        .form-section.editing::after {
-            content: "✏️ EDITING APPOINTMENT";
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #f59e0b, #f97316);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-            z-index: 10;
         }
 
         .form-row {
@@ -709,55 +681,6 @@
             transform: none;
         }
 
-        .button-container {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            justify-content: center;
-            margin-top: 10px;
-        }
-
-        .cancel-button {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            padding: 14px 24px;
-            border: none;
-            border-radius: var(--border-radius-lg);
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: var(--shadow-md);
-            transition: all var(--transition-duration) ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cancel-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .cancel-button:hover::before {
-            left: 100%;
-        }
-
-        .cancel-button:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            box-shadow: var(--shadow-lg), 0 10px 30px rgba(239, 68, 68, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .cancel-button:active {
-            box-shadow: var(--shadow-md);
-            transform: translateY(0);
-        }
-
         .appointments-section {
             margin-top: 30px;
         }
@@ -784,35 +707,6 @@
         .appointment:hover {
             transform: translateY(-3px);
             box-shadow: var(--shadow-2xl), var(--glow-primary), inset 0 1px 0 var(--glass-medium);
-        }
-
-        .appointment.editing {
-            border: 2px solid #f59e0b;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
-            box-shadow: var(--shadow-xl), 0 0 20px rgba(245, 158, 11, 0.3), inset 0 1px 0 var(--glass-medium);
-            transform: translateY(-2px);
-        }
-
-        .appointment.editing::before {
-            content: "✏️ EDITING";
-            position: absolute;
-            top: -12px;
-            right: 20px;
-            background: linear-gradient(135deg, #f59e0b, #f97316);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-            z-index: 10;
-        }
-
-        .appointment.editing .appointment-info {
-            border-bottom: 2px dashed rgba(245, 158, 11, 0.3);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
         }
 
         .appointment-info {
@@ -845,54 +739,28 @@
         }
 
         .timing-row {
-            display: grid;
-            grid-template-columns: 140px 1fr;
-            gap: 12px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 6px;
         }
 
         .timing-row:last-child {
             margin-bottom: 0;
-            border-bottom: none;
         }
 
         .timing-label {
             color: var(--light-text-color);
             font-weight: 500;
-            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 6px;
-            white-space: nowrap;
-            justify-self: start;
         }
 
         .timing-value {
             color: var(--primary-color);
             font-weight: 600;
             font-family: 'Roboto', monospace;
-            font-size: 14px;
-            text-align: left;
-            justify-self: start;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        /* Special styling for reminder row to handle long lists */
-        .timing-row.reminder-row .timing-value {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            hyphens: auto;
-            max-width: 100%;
-        }
-
-        /* Compact layout for very long reminder lists */
-        .timing-row.compact .timing-value {
-            font-size: 12px;
-            line-height: 1.2;
         }
 
         .alarm-indicator {
@@ -1140,22 +1008,6 @@
             
             .reminder-grid {
                 grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .timing-row {
-                grid-template-columns: 120px 1fr;
-                gap: 8px;
-                margin-bottom: 10px;
-                padding: 8px 0;
-            }
-            
-            .timing-label {
-                font-size: 13px;
-            }
-            
-            .timing-value {
-                font-size: 13px;
-                line-height: 1.3;
             }
         }
         /* Appointment Button Styles */
@@ -2253,10 +2105,7 @@
                     </div>
                 </div>
                 
-                <div class="button-container">
-                    <button class="add-button" onclick="addAppointment()">Add Appointment</button>
-                    <button class="cancel-button" onclick="cancelEdit()" style="display: none;">Cancel Edit</button>
-                </div>
+                <button class="add-button" onclick="addAppointment()">Add Appointment</button>
             </div>
             
             <div class="appointments-section" id="appointmentList"></div>
@@ -3578,19 +3427,8 @@
                 }
             });
             
-            // Smart formatting for better readability
-            if (formatted.length <= 3) {
-                // Short lists: use commas
-                return formatted.join(', ') + ' before';
-            } else if (formatted.length <= 5) {
-                // Medium lists: use more compact spacing
-                return formatted.join(' • ') + ' before';
-            } else {
-                // Long lists: show first few and count
-                const first = formatted.slice(0, 3).join(', ');
-                const remaining = formatted.length - 3;
-                return `${first} +${remaining} more before`;
-            }
+            // Sort and join
+            return formatted.join(', ') + ' before';
         }
 
         // Helper function to convert 24-hour input to 12-hour display
@@ -3758,9 +3596,6 @@
             // Setup smart defaults and Android time input helper
             setupSmartDefaults();
             setupAndroidTimeHelper();
-            
-            // Setup editing update listeners for real-time feedback
-            setupEditingUpdateListeners();
             
             // Initialize timer hub
             setTimeout(() => {
@@ -4423,18 +4258,18 @@
                                     <span class="timing-label">🕐 Appointment Time:</span>
                                     <span class="timing-value">${formatTime12Hour(app.appointmentTime)}</span>
                                 </div>
-                                <div class="timing-row reminder-row ${(app.reminderTimes || []).length > 4 ? 'compact' : ''}">
+                                <div class="timing-row">
                                     <span class="timing-label">⏰ Reminders:</span>
                                     <span class="timing-value">${formatReminderTimes(app.reminderTimes || [{ minutes: 60, label: '1h' }])}</span>
                                 </div>
                                 <div class="timing-row">
-                                    <span class="timing-label">🔔 3-min Warning:</span>
+                                    <span class="timing-label">� 3-min Warning:</span>
                                     <span class="timing-value" style="color: ${app.threeMinuteWarning ? '#4ade80' : '#ef4444'};">
                                         ${app.threeMinuteWarning ? '✓ Enabled' : '✗ Disabled'}
                                     </span>
                                 </div>
                                 <div class="timing-row">
-                                    <span class="timing-label">📅 Date:</span>
+                                    <span class="timing-label">�📅 Date:</span>
                                     <span class="timing-value">${app.appointmentTime.toLocaleDateString()}</span>
                                 </div>
                             </div>
@@ -4479,123 +4314,41 @@
             updateTimerHub();
         }
 
-        // Enhanced edit appointment with visual indicators
+        // Edit appointment
         function editAppointment(id) {
             const appointment = appointments.find(app => app.id === id);
-            if (!appointment) return;
-            
-            // Set editing state
-            editingAppointmentId = id;
-            
-            // Add visual indicators
-            addEditingVisualIndicators(id);
-            
-            // Populate form fields
-            document.getElementById('tagSelect').value = appointment.tag;
-            document.getElementById('descInput').value = appointment.desc || '';
-            
-            // Set appointment time with proper formatting
-            try {
-                const timeString = appointment.appointmentTime.toTimeString().slice(0, 5);
-                document.getElementById('appointmentTime').value = timeString;
+            if (appointment) {
+                document.getElementById('tagSelect').value = appointment.tag;
+                document.getElementById('descInput').value = appointment.desc;
+                document.getElementById('appointmentTime').value = appointment.time;
                 
-                // Show user-friendly feedback
-                const feedback = document.getElementById('timeFeedback');
-                if (feedback) {
-                    feedback.textContent = `✓ Time set: ${formatTime12Hour(appointment.appointmentTime)}`;
-                    feedback.className = 'input-feedback success';
-                }
-            } catch (error) {
-                console.error('Error setting time for edit:', error);
-                showErrorMessage('Error loading appointment time. Please set the time manually.');
-            }
-            
-            // Set reminder times
-            const reminderTimes = appointment.reminderTimes || [{ minutes: 60, label: '1h' }];
-            const reminderMinutes = reminderTimes.map(r => r.minutes);
-            setReminderTimes(reminderMinutes);
-            
-            // Set 3-minute warning
-            document.getElementById('threeMinuteWarning').checked = appointment.threeMinuteWarning || false;
-            
-            // Update buttons and form appearance
-            document.querySelector('.add-button').textContent = '📝 Update Appointment';
-            document.querySelector('.cancel-button').style.display = 'block';
-            document.querySelector('.form-section').classList.add('editing');
-            
-            // Scroll to form
-            document.querySelector('.form-section').scrollIntoView({ 
-                behavior: 'smooth',
-                block: 'center'
-            });
-            
-            // Show success message
-            showSuccessMessage(`Editing appointment: ${appointment.desc || appointment.tag}`);
-        }
-
-        // Add visual editing indicators
-        function addEditingVisualIndicators(editingId) {
-            // Remove previous editing indicators
-            document.querySelectorAll('.appointment').forEach(el => {
-                el.classList.remove('editing');
-            });
-            
-            // Add editing class to the appointment being edited
-            const editingAppointment = document.querySelector(`#appointment-${editingId}`);
-            if (editingAppointment) {
-                editingAppointment.classList.add('editing');
+                // Handle multiple reminder times for editing
+                const reminderTimes = appointment.reminderTimes || [{ minutes: 60, label: '1h' }];
+                const reminderMinutes = reminderTimes.map(r => r.minutes);
+                
+                // Set the reminder checkboxes
+                setReminderTimes(reminderMinutes);
+                
+                // Set 3-minute warning checkbox
+                document.getElementById('threeMinuteWarning').checked = appointment.threeMinuteWarning || false;
+                
+                editingAppointmentId = id;
+                document.querySelector('.add-button').textContent = 'Update Appointment';
+                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
-        // Enhanced cancel edit function
+        // Cancel edit
         function cancelEdit() {
-            if (!editingAppointmentId) return;
-            
-            // Remove visual indicators
-            removeEditingVisualIndicators();
-            
-            // Reset form
-            resetFormToDefault();
-            
-            // Clear editing state
             editingAppointmentId = null;
-            
-            // Update buttons
             document.querySelector('.add-button').textContent = 'Add Appointment';
-            document.querySelector('.cancel-button').style.display = 'none';
-            document.querySelector('.form-section').classList.remove('editing');
-            
-            // Show cancellation message
-            showInfoMessage('Edit cancelled');
-            
-            // Haptic feedback
-            hapticFeedback('light');
-        }
-
-        // Remove visual editing indicators
-        function removeEditingVisualIndicators() {
-            document.querySelectorAll('.appointment').forEach(el => {
-                el.classList.remove('editing');
-            });
-            document.querySelector('.form-section').classList.remove('editing');
-        }
-
-        // Reset form to default state
-        function resetFormToDefault() {
-            document.getElementById('tagSelect').value = 'General';
             document.getElementById('descInput').value = '';
             document.getElementById('appointmentTime').value = '';
-            document.getElementById('threeMinuteWarning').checked = false;
             
             // Reset to default reminder selection (1 hour)
             setReminderTimes([60]);
             
-            // Clear feedback messages
-            const feedbacks = document.querySelectorAll('.input-feedback');
-            feedbacks.forEach(feedback => {
-                feedback.textContent = '';
-                feedback.className = 'input-feedback';
-            });
+            document.getElementById('threeMinuteWarning').checked = false;
         }
 
         // Wrapper function for async removeAppointment
@@ -4730,27 +4483,27 @@
                 
                 if (totalSeconds <= 60) {
                     countdownText.classList.add('urgent');
-                    countdownText.textContent = `${displayText}${editingAppointmentId === appointment.id ? ' ✏️' : ''}`;
+                    countdownText.textContent = displayText;
                     if (appointmentElement) {
                         appointmentElement.style.boxShadow = '0 0 20px rgba(239, 83, 80, 0.4)';
                         appointmentElement.classList.add('urgent-attention');
                     }
                 } else if (totalSeconds <= 180 && appointment.threeMinuteWarning) { // 3 minutes and warning enabled
                     countdownText.classList.add('warning');
-                    countdownText.textContent = `🔔 ${displayText} (3-min warning active)${editingAppointmentId === appointment.id ? ' ✏️' : ''}`;
+                    countdownText.textContent = `🔔 ${displayText} (3-min warning active)`;
                     if (appointmentElement) {
                         appointmentElement.style.boxShadow = '0 0 18px rgba(255, 193, 7, 0.4)';
                         appointmentElement.classList.add('warning-attention');
                     }
                 } else if (totalSeconds <= 300) { // 5 minutes
                     countdownText.classList.add('warning');
-                    countdownText.textContent = `${displayText}${editingAppointmentId === appointment.id ? ' ✏️' : ''}`;
+                    countdownText.textContent = displayText;
                     if (appointmentElement) {
                         appointmentElement.style.boxShadow = '0 0 15px rgba(255, 167, 38, 0.3)';
                         appointmentElement.classList.add('warning-attention');
                     }
                 } else if (totalSeconds <= reminderSeconds) { // In countdown phase
-                    countdownText.textContent = `${displayText}${editingAppointmentId === appointment.id ? ' ✏️' : ''}`;
+                    countdownText.textContent = displayText;
                     if (appointmentElement) {
                         appointmentElement.style.boxShadow = '';
                         appointmentElement.classList.add('in-countdown');
@@ -4771,7 +4524,7 @@
                     }
                 } else {
                     // Default case: show regular countdown text
-                    countdownText.textContent = `${displayText}${editingAppointmentId === appointment.id ? ' ✏️ EDITING' : ''}`;
+                    countdownText.textContent = displayText;
                     if (appointmentElement) {
                         appointmentElement.style.boxShadow = '';
                         // Clear shake interval when not in countdown
@@ -5170,6 +4923,55 @@
         }
 
         // Edit appointment function (enhanced version)
+        function editAppointment(id) {
+            const appointment = appointments.find(app => app.id === id);
+            if (appointment) {
+                editingAppointmentId = id;
+                
+                document.getElementById('tagSelect').value = appointment.tag;
+                document.getElementById('descInput').value = appointment.desc || '';
+                
+                // Enhanced time setting for Android compatibility
+                try {
+                    // The input still needs 24-hour format for functionality
+                    const timeString = appointment.appointmentTime.toTimeString().slice(0, 5);
+                    document.getElementById('appointmentTime').value = timeString;
+                    
+                    // Show user-friendly 12-hour format feedback
+                    const feedback = document.getElementById('timeFeedback');
+                    if (feedback) {
+                        feedback.textContent = `✓ Time set: ${formatTime12Hour(appointment.appointmentTime)}`;
+                        feedback.className = 'input-feedback success';
+                    }
+                    
+                    // Validate the time was set correctly (Android fix)
+                    setTimeout(() => {
+                        const timeInput = document.getElementById('appointmentTime');
+                        if (timeInput.value !== timeString) {
+                            console.warn('Time input issue detected, retrying...');
+                            timeInput.value = timeString;
+                        }
+                    }, 100);
+                    
+                } catch (error) {
+                    console.error('Error setting time for edit:', error);
+                    showErrorMessage('Error loading appointment time. Please set the time manually.');
+                }
+                
+                // Set reminder options (multiple checkboxes)
+                const reminderTimes = appointment.reminderTimes || [{ minutes: 60, label: '1h' }];
+                const reminderMinutes = reminderTimes.map(r => r.minutes);
+                
+                setReminderTimes(reminderMinutes);
+                
+                document.querySelector('.add-button').textContent = 'Update Appointment';
+                document.getElementById('tagSelect').focus();
+                
+                hapticFeedback('medium');
+                showMessage('Editing appointment - make your changes and click Update', 'info');
+            }
+        }
+
         // Modern Timer Hub Management - Optimized
         let timerHubExpanded = false;
         let timerHubAutoHideTimeout = null;
@@ -5580,82 +5382,6 @@
             
             updateSelectedReminderTimes();
             updateSelectedCount();
-            
-            // Update countdown display if currently editing
-            updateEditingCountdownDisplay();
-        }
-
-        // Real-time countdown update during editing
-        function updateEditingCountdownDisplay() {
-            if (!editingAppointmentId) return;
-            
-            const appointment = appointments.find(app => app.id === editingAppointmentId);
-            if (!appointment) return;
-            
-            // Get current form values
-            const timeInput = document.getElementById('appointmentTime').value;
-            const threeMinuteWarning = document.getElementById('threeMinuteWarning').checked;
-            const currentReminderTimes = getSelectedReminderTimes();
-            
-            // Update appointment timing display if time has changed
-            if (timeInput) {
-                try {
-                    const [hours, minutes] = timeInput.split(':');
-                    const newTime = new Date(appointment.appointmentTime);
-                    newTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                    
-                    // Update the timing display
-                    const timingValue = document.querySelector(`#appointment-${editingAppointmentId} .timing-row:first-child .timing-value`);
-                    if (timingValue) {
-                        timingValue.textContent = formatTime12Hour(newTime);
-                        timingValue.style.fontWeight = 'bold';
-                        timingValue.style.color = '#f59e0b';  // Orange to indicate editing
-                    }
-                    
-                    // Update reminders display
-                    const remindersValue = document.querySelector(`#appointment-${editingAppointmentId} .timing-row:nth-child(2) .timing-value`);
-                    if (remindersValue) {
-                        remindersValue.textContent = formatReminderTimes(currentReminderTimes);
-                        remindersValue.style.fontWeight = 'bold';
-                        remindersValue.style.color = '#f59e0b';  // Orange to indicate editing
-                    }
-                    
-                    // Update 3-minute warning display
-                    const warningValue = document.querySelector(`#appointment-${editingAppointmentId} .timing-row:nth-child(3) .timing-value`);
-                    if (warningValue) {
-                        warningValue.innerHTML = `<span style="color: ${threeMinuteWarning ? '#4ade80' : '#ef4444'}; font-weight: bold;">${threeMinuteWarning ? '✓ Enabled' : '✗ Disabled'}</span>`;
-                    }
-                    
-                } catch (error) {
-                    console.error('Error updating editing display:', error);
-                }
-            }
-        }
-
-        // Add event listeners for real-time updates during editing
-        function setupEditingUpdateListeners() {
-            // Time input change
-            const timeInput = document.getElementById('appointmentTime');
-            if (timeInput) {
-                timeInput.addEventListener('input', updateEditingCountdownDisplay);
-                timeInput.addEventListener('change', updateEditingCountdownDisplay);
-            }
-            
-            // 3-minute warning change
-            const warningCheckbox = document.getElementById('threeMinuteWarning');
-            if (warningCheckbox) {
-                warningCheckbox.addEventListener('change', updateEditingCountdownDisplay);
-            }
-            
-            // Reminder checkboxes change
-            const reminderCheckboxes = document.querySelectorAll('input[name="reminder"]');
-            reminderCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    updateSelectedReminderTimes();
-                    updateSelectedCount();
-                    updateEditingCountdownDisplay();
-                });
-            });
         }
 
         // Toggle "Please Read" drawer
