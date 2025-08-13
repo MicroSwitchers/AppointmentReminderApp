@@ -97,7 +97,6 @@
             padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
             position: relative;
             overflow-x: hidden;
-            animation: fadeIn 0.8s ease-out;
             touch-action: manipulation;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
@@ -144,7 +143,6 @@
             width: 100%;
             max-width: 650px;
             margin: 0 auto;
-            animation: slideUp 0.8s ease-out 0.2s both;
         }
 
         @keyframes slideUp {
@@ -699,10 +697,6 @@
             background: var(--secondary-gradient);
         }
 
-        .add-button:active {
-            box-shadow: var(--shadow-md);
-        }
-
         .add-button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -750,12 +744,6 @@
         .cancel-button:hover {
             background: linear-gradient(135deg, #dc2626, #b91c1c);
             box-shadow: var(--shadow-lg), 0 10px 30px rgba(239, 68, 68, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .cancel-button:active {
-            box-shadow: var(--shadow-md);
-            transform: translateY(0);
         }
 
         .appointments-section {
@@ -782,7 +770,6 @@
         }
 
         .appointment:hover {
-            transform: translateY(-3px);
             box-shadow: var(--shadow-2xl), var(--glow-primary), inset 0 1px 0 var(--glass-medium);
         }
 
@@ -1264,24 +1251,6 @@
         }
 
         /* PWA Enhancement Styles */
-        .install-button {
-            background: var(--accent-gradient);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 8px 16px;
-            font-size: 0.9em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-duration) ease;
-            margin-left: 15px;
-            box-shadow: var(--shadow-md);
-            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .install-button:hover {
-            box-shadow: var(--shadow-lg);
-        }
 
         .update-button {
             position: fixed;
@@ -1398,16 +1367,7 @@
             box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.2) !important;
         }
 
-        /* Haptic feedback indicator */
-        .haptic-feedback {
-            animation: hapticPulse 0.1s ease-out;
-        }
-
-        @keyframes hapticPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.98); }
-            100% { transform: scale(1); }
-        }
+    /* Haptic feedback visual animation removed to prevent layout jump */
 
         /* Attention-grabbing animations for countdown phase */
         @keyframes gentleShake {
@@ -1543,10 +1503,6 @@
         .timer-hub-fab:hover {
             transform: scale(1.1);
             box-shadow: 0 8px 25px rgba(97, 218, 251, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2);
-        }
-
-        .timer-hub-fab:active {
-            transform: scale(0.95);
         }
 
         .timer-hub-fab.has-timers {
@@ -1726,10 +1682,6 @@
         .timer-hub-item:hover {
             background: rgba(255, 255, 255, 0.05);
             transform: translateX(-2px);
-        }
-
-        .timer-hub-item:active {
-            transform: translateX(-2px) scale(0.98);
         }
 
         .timer-hub-item:last-child {
@@ -2517,13 +2469,12 @@
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     this.deferredPrompt = e;
-                    this.showInstallButton();
+                    // Install button removed - PWA can still be installed via browser's install menu
                 });
 
                 // Listen for app installed
                 window.addEventListener('appinstalled', () => {
                     this.isInstalled = true;
-                    this.hideInstallButton();
                     console.log('PWA installed successfully');
                 });
 
@@ -2546,41 +2497,6 @@
                     window.navigator.standalone || 
                     document.referrer.includes('android-app://')) {
                     this.isInstalled = true;
-                }
-            }
-
-            showInstallButton() {
-                // Add install button to UI if not already shown
-                if (!document.getElementById('pwa-install-btn')) {
-                    const installBtn = document.createElement('button');
-                    installBtn.id = 'pwa-install-btn';
-                    installBtn.innerHTML = '📱 Install App';
-                    installBtn.className = 'install-button';
-                    installBtn.onclick = () => this.installApp();
-                    
-                    const header = document.querySelector('.app-header');
-                    header.appendChild(installBtn);
-                }
-            }
-
-            hideInstallButton() {
-                const installBtn = document.getElementById('pwa-install-btn');
-                if (installBtn) {
-                    installBtn.remove();
-                }
-            }
-
-            async installApp() {
-                if (this.deferredPrompt) {
-                    this.deferredPrompt.prompt();
-                    const choiceResult = await this.deferredPrompt.userChoice;
-                    
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                    }
-                    
-                    this.deferredPrompt = null;
-                    this.hideInstallButton();
                 }
             }
 
@@ -3768,7 +3684,7 @@
             }, 100);
         }
 
-        // Haptic feedback function
+        // Haptic feedback function (visual animation removed)
         function hapticFeedback(intensity = 'medium') {
             if ('vibrate' in navigator) {
                 const patterns = {
@@ -3778,12 +3694,6 @@
                 };
                 navigator.vibrate(patterns[intensity] || patterns.medium);
             }
-            
-            // Visual feedback for devices without haptic support
-            document.body.classList.add('haptic-feedback');
-            setTimeout(() => {
-                document.body.classList.remove('haptic-feedback');
-            }, 100);
         }
 
         // Enhanced form validation
